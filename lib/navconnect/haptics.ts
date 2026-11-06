@@ -1,44 +1,30 @@
-// Vibration cues. navigator.vibrate only works on Android, so the UI always also shows
-// the prototype's on-screen shake (`n` pulses) and the haptic toast (`d` glyphs).
+// Vibration cues, using the device's vibration motor only.
+// navigator.vibrate works on Android browsers. iOS (Safari and home-screen apps) doesn't
+// support it, so cues silently do nothing there. There is deliberately no on-screen stand-in.
 
 export type HapticKind = "left" | "right" | "elev" | "down" | "arrive" | "reroute";
 
-export type HapticPattern = {
-  /** navigator.vibrate pattern in ms (on, off, on, …). */
-  p: readonly number[];
-  /** Glyphs shown in the haptic toast. */
-  d: string;
-  /** Number of on-screen shake pulses. */
-  n: number;
+/** navigator.vibrate patterns in ms (on, off, on, …), from the prototype. */
+export const HAP: Record<HapticKind, readonly number[]> = {
+  left: [140, 90, 140], // 2 short
+  right: [140, 90, 140, 90, 140], // 3 short
+  elev: [400, 150, 400], // 2 long
+  down: [400, 150, 400], // 2 long
+  arrive: [700], // 1 long
+  reroute: [80, 60, 80, 60, 80, 60, 80], // 4 quick
 };
 
-export const HAP: Record<HapticKind, HapticPattern> = {
-  left: { p: [140, 90, 140], d: "● ●", n: 2 },
-  right: { p: [140, 90, 140, 90, 140], d: "● ● ●", n: 3 },
-  elev: { p: [400, 150, 400], d: "━ ━", n: 2 },
-  down: { p: [400, 150, 400], d: "━ ━", n: 2 },
-  arrive: { p: [700], d: "━━━", n: 1 },
-  reroute: { p: [80, 60, 80, 60, 80, 60, 80], d: "● ● ● ●", n: 4 },
-};
-
-export function isHapticKind(value: string): value is HapticKind {
-  return value in HAP;
+/** Whether this browser exposes the Vibration API (false on iOS). */
+export function vibrationSupported(): boolean {
+  return typeof navigator !== "undefined" && typeof navigator.vibrate === "function";
 }
 
-/** Milliseconds between on-screen shake pulses for a pattern. */
-export function pulseInterval(kind: HapticKind): number {
-  return HAP[kind].p[0] > 300 ? 420 : 220;
-}
-
-/** Vibrate the device if supported. Returns the pattern so the UI can show the shake and toast. */
-export function vibrate(kind: HapticKind): HapticPattern {
-  const h = HAP[kind];
+/** Vibrate the device if it supports it; otherwise do nothing. */
+export function vibrate(kind: HapticKind): void {
+  if (!vibrationSupported()) return;
   try {
-    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
-      navigator.vibrate([...h.p]);
-    }
+    navigator.vibrate([...HAP[kind]]);
   } catch {
-    // ignore
+    // Some browsers throw if called without a user gesture; ignore.
   }
-  return h;
 }

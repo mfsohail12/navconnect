@@ -29,6 +29,13 @@ const notoArabic = Noto_Sans_Arabic({
 export const metadata: Metadata = {
   title: "NavConnect",
   description: "NavConnect: accessible AR hospital wayfinding prototype.",
+  // Home-screen app on iOS. The status bar overlays the page; the patient app pads
+  // its screens with env(safe-area-inset-*) so nothing sits under it.
+  appleWebApp: {
+    capable: true,
+    title: "NavConnect",
+    statusBarStyle: "black-translucent",
+  },
 };
 
 export const viewport: Viewport = {
