@@ -1,49 +1,138 @@
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/*
+ * Global styles: the prototype's design tokens (light, dark, and the AR scene palette),
+ * base element rules, focus rings and reduced motion. Component styles live in CSS modules.
+ * Fonts are loaded with next/font in app/layout.tsx and exposed as --font-* variables.
+ */
 
 html {
-  height: 100%;
+  -webkit-text-size-adjust: 100%;
 }
 
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
+:root {
+  --bg: #ebf0f7;
+  --surface: #ffffff;
+  --surface-2: #f4f7fb;
+  --ink: #0d1a2d;
+  --muted: #55667e;
+  --line: #d2dbe7;
+  --accent: #1546c8;
+  --accent-ink: #ffffff;
+  --accent-soft: #e1e8fa;
+  --ok: #1c7f46;
+  --ok-soft: #dff2e6;
+  --warn: #a86300;
+  --warn-soft: #faeed8;
+  --crit: #bf2747;
+  --crit-soft: #fae3e8;
+  --l-blue: #1f63e0;
+  --l-teal: #0a8282;
+  --l-amber: #d98a00;
+  --l-green: #2b9646;
+  --l-red: #d2335f;
+  --frame: #0d1a2d;
+  --shadow: 0 30px 60px -30px rgba(13, 26, 45, 0.45);
+  --ar-ceil: #eceff2;
+  --ar-wl: #d6dce1;
+  --ar-wr: #cbd2d8;
+  --ar-back: #bac4cd;
+  --ar-floor: #a8b2ba;
+  --ar-door: #9fb1c2;
+  --ar-light: #ffffff;
+  --f-display: var(--font-lexend), var(--font-noto-arabic), system-ui, sans-serif;
+  --f-body:
+    var(--font-atkinson), var(--font-noto-arabic), system-ui, "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  --f-mono: var(--font-jetbrains), ui-monospace, monospace;
 }
-
-body {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0a111e;
+    --surface: #121b2c;
+    --surface-2: #18233a;
+    --ink: #e6ecf6;
+    --muted: #93a3ba;
+    --line: #27344d;
+    --accent: #7097ff;
+    --accent-ink: #081025;
+    --accent-soft: #1b2a4e;
+    --ok: #55c987;
+    --ok-soft: #14301f;
+    --warn: #f0b44c;
+    --warn-soft: #33260f;
+    --crit: #ff7a95;
+    --crit-soft: #3a1622;
+    --l-blue: #5b8dff;
+    --l-teal: #2ec4c4;
+    --l-amber: #f2a93b;
+    --l-green: #4cc46a;
+    --l-red: #ff6b8e;
+    --frame: #000000;
+    --shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.8);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0a111e;
+  --surface: #121b2c;
+  --surface-2: #18233a;
+  --ink: #e6ecf6;
+  --muted: #93a3ba;
+  --line: #27344d;
+  --accent: #7097ff;
+  --accent-ink: #081025;
+  --accent-soft: #1b2a4e;
+  --ok: #55c987;
+  --ok-soft: #14301f;
+  --warn: #f0b44c;
+  --warn-soft: #33260f;
+  --crit: #ff7a95;
+  --crit-soft: #3a1622;
+  --l-blue: #5b8dff;
+  --l-teal: #2ec4c4;
+  --l-amber: #f2a93b;
+  --l-green: #4cc46a;
+  --l-red: #ff6b8e;
+  --frame: #000000;
+  --shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.8);
+  color-scheme: dark;
 }
 
 * {
   box-sizing: border-box;
-  padding: 0;
+}
+[hidden] {
+  display: none !important;
+}
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 15px;
+  line-height: 1.45;
+}
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+body {
   margin: 0;
 }
-
-a {
-  color: inherit;
-  text-decoration: none;
+img {
+  max-width: 100%;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
