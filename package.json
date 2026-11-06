@@ -8,9 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "db:new": "supabase migration new",
-    "db:push": "supabase db push",
-    "db:status": "supabase migration list",
-    "db:types": "supabase gen types typescript --linked > lib/database.types.ts"
+    "db:push": "supabase db push --remote",
+    "db:status": "supabase migration list --remote",
+    "db:types": "supabase gen types typescript --remote > lib/database.types.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.0",

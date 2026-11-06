@@ -39,13 +39,141 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      activity: {
+        Row: {
+          created_at: string
+          id: number
+          message: string
+        }
+        Insert: {
+          created_at?: string
+          id?: never
+          message: string
+        }
+        Update: {
+          created_at?: string
+          id?: never
+          message?: string
+        }
+        Relationships: []
+      }
+      closures: {
+        Row: {
+          affects: string[]
+          description: string
+          is_closed: boolean
+          key: string
+          label: string
+          updated_at: string
+        }
+        Insert: {
+          affects?: string[]
+          description: string
+          is_closed?: boolean
+          key: string
+          label: string
+          updated_at?: string
+        }
+        Update: {
+          affects?: string[]
+          description?: string
+          is_closed?: boolean
+          key?: string
+          label?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      demo_stats: {
+        Row: {
+          key: string
+          value: number
+        }
+        Insert: {
+          key: string
+          value: number
+        }
+        Update: {
+          key?: string
+          value?: number
+        }
+        Relationships: []
+      }
+      destination_counts: {
+        Row: {
+          count: number
+          destination: string
+        }
+        Insert: {
+          count?: number
+          destination: string
+        }
+        Update: {
+          count?: number
+          destination?: string
+        }
+        Relationships: []
+      }
+      help_requests: {
+        Row: {
+          assigned_at: string | null
+          client_id: string
+          created_at: string
+          destination: string | null
+          escort_for: string | null
+          id: string
+          lang: string
+          location: string
+          note: string | null
+          reason: string
+          status: string
+          volunteer: string | null
+        }
+        Insert: {
+          assigned_at?: string | null
+          client_id: string
+          created_at?: string
+          destination?: string | null
+          escort_for?: string | null
+          id?: string
+          lang?: string
+          location: string
+          note?: string | null
+          reason: string
+          status?: string
+          volunteer?: string | null
+        }
+        Update: {
+          assigned_at?: string | null
+          client_id?: string
+          created_at?: string
+          destination?: string | null
+          escort_for?: string | null
+          id?: string
+          lang?: string
+          location?: string
+          note?: string | null
+          reason?: string
+          status?: string
+          volunteer?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "help_requests_escort_for_fkey"
+            columns: ["escort_for"]
+            isOneToOne: false
+            referencedRelation: "closures"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      record_arrival: { Args: { p_destination: string }; Returns: undefined }
+      reset_demo: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
