@@ -19,7 +19,7 @@ Investor demo of NavConnect, an accessible hospital wayfinding concept, set at L
 - **Port the prototype; don't redesign it.** Reuse its CSS tokens, layout, copy, translations, routes and map coordinates. Split it into React components, CSS modules, and TypeScript modules.
 - **Static data lives in code** (`lib/navconnect/`): languages, destinations, routes, detours, map geometry. **Only shared, changing state lives in Supabase.**
 - **Writes go through Server Actions** using `getSupabaseAdminClient()` from `lib/supabase/server.ts`. **Reads and realtime go through** `getSupabaseBrowserClient()` and `useTableChanges()` from `lib/supabase/`. Reuse these utilities; don't create new Supabase clients.
-- Never import `lib/supabase/server.ts` from a Client Component. Never expose `SUPABASE_SERVICE_ROLE_KEY` or prefix it with `NEXT_PUBLIC_`.
+- Never import `lib/supabase/server.ts` from a Client Component. Never expose `SUPABASE_SECRET_KEY` or prefix it with `NEXT_PUBLIC_`.
 - **Schema changes only through new migrations**, using the npm scripts:
   1. `npm run db:new -- <name>` creates `supabase/migrations/<timestamp>_<name>.sql`. Write the SQL there.
   2. `npm run db:push` applies pending migrations to the linked Supabase project. Ask before running it.

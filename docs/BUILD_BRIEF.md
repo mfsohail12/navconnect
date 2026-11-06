@@ -112,7 +112,7 @@ Stop after each phase, summarize what changed, and say how to verify it.
 
 - Port every patient screen, overlay and the navigation engine with the prototype's styling.
 - Language switching (including RTL), settings persistence, speech and haptics.
-- Phone frame on desktop, full screen on mobile.
+- Responsive UI with emphasis on matching phone UI to prototype.
 
 **Phase 3: Dashboard and cross-device flows**
 
@@ -134,4 +134,5 @@ Stop after each phase, summarize what changed, and say how to verify it.
 ```
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+SUPABASE_SECRET_KEY=        # server only; never prefix with NEXT_PUBLIC_
 ```
