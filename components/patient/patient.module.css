@@ -1245,34 +1245,14 @@
   font-size: 1.05em;
   text-align: center;
 }
-.hap-toast {
+
+/* ---------- touch targets (new) ---------- */
+
+/* Keep the prototype's 52×32 switch, but make the tap area at least 44px tall. */
+.sw::before {
+  content: "";
   position: absolute;
-  left: 50%;
-  bottom: 220px;
-  transform: translateX(-50%);
-  z-index: 15;
-  background: rgba(13, 26, 45, 0.92);
-  color: #fff;
-  border-radius: 999px;
-  padding: 8px 16px;
-  font-weight: 700;
-  font-size: 0.85em;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-  pointer-events: none;
-}
-.phone.buzz {
-  animation: buzz 0.12s linear;
-}
-@keyframes buzz {
-  25% {
-    transform: translateX(-3px);
-  }
-  75% {
-    transform: translateX(3px);
-  }
+  inset: -6px -4px;
 }
 
 /* ---------- layout (new) ---------- */

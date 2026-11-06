@@ -1,7 +1,7 @@
 "use client";
 
 // The patient phone app. Screens: home → route → nav (AR) → arrive, plus settings.
-// Overlays: help sheet, closure choice sheet, letter scan, haptic toast.
+// Overlays: help sheet, closure choice sheet, letter scan.
 // Shared state (closures, help requests) comes from Supabase; everything else is local.
 
 import { useRef, useState, type CSSProperties } from "react";
@@ -20,7 +20,6 @@ import { useNavigationPresence } from "./hooks/useNavigationPresence";
 import { usePhoneFit } from "./hooks/usePhoneFit";
 import { setPrefs, usePrefs, type Prefs } from "./hooks/usePrefs";
 import { ChoiceSheet } from "./overlays/ChoiceSheet";
-import { HapticToast } from "./overlays/HapticToast";
 import { HelpSheet } from "./overlays/HelpSheet";
 import { ScanOverlay } from "./overlays/ScanOverlay";
 import { ArriveScreen } from "./screens/ArriveScreen";
@@ -41,7 +40,7 @@ export function PatientApp() {
   const t = I[prefs.lang];
   const clock = useClock();
   const phoneRef = useRef<HTMLDivElement>(null);
-  const fb = useFeedback(prefs, phoneRef);
+  const fb = useFeedback(prefs);
   usePhoneFit(phoneRef);
 
   const [screen, setScreen] = useState<Screen>("home");
@@ -308,7 +307,6 @@ export function PatientApp() {
           />
         )}
         {scan && <ScanOverlay text={scan === "reading" ? t.scanning : t.found} />}
-        {fb.toast && <HapticToast label={t.vib} glyphs={fb.toast} />}
       </div>
 
       <p className={cx("phone-note")}>

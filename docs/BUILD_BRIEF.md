@@ -30,7 +30,7 @@ What to carry over from the prototype's `<script>` and `<style>`:
 | `speak`, `haptic`, `HAP`                                                           | `lib/navconnect/speech.ts`, `lib/navconnect/haptics.ts`                                                                                                                 |
 | Screens: home, route, nav (AR view), arrive, settings                              | Client components under `app/(patient)/…` or `components/patient/…`                                                                                                     |
 | Navigation engine (`startNav`, `step`, `maneuver`, `advance`, `finish`)            | A `useNavigation` hook or reducer                                                                                                                                       |
-| Help sheet, closure choice sheet (detour or volunteer), scan overlay, haptic toast | Client components                                                                                                                                                       |
+| Help sheet, closure choice sheet (detour or volunteer), scan overlay              | Client components                                                                                                                                                       |
 | `console_` staff console                                                           | `/staff-dashboard`, now backed by Supabase                                                                                                                              |
 | Settings (language, text size, contrast, voice, vibration, pace)                   | Per-device, in `localStorage` (wrap in try/catch)                                                                                                                       |
 
@@ -85,7 +85,7 @@ Activity messages should read like the prototype's, e.g. "New request from a vis
 ## 6. Mobile and demo constraints
 
 - **Speech.** iOS Safari only speaks after a user gesture. "Start navigation" is the first gesture, so don't speak on page load. Voices vary by device.
-- **Vibration.** `navigator.vibrate` works on Android only. Always also show the prototype's on-screen shake and haptic toast.
+- **Vibration.** `navigator.vibrate` works on Android only. Cues use the device's vibration motor and nothing else: no on-screen shake or haptic toast. Where vibration isn't supported (iOS), cues do nothing.
 - **Locked phones.** Phones drop the realtime websocket when locked or backgrounded. `useTableChanges` resyncs on visibility; make sure every live view supplies `onResync`.
 - **Layout.** Use `100dvh` and `env(safe-area-inset-*)`. No horizontal scroll at 360px wide. Touch targets at least 44px.
 - **Accessibility.** Keep the prototype's text-size, high-contrast, focus and reduced-motion support. Use real buttons, labelled switches and `lang`/`dir` on the app container.
@@ -121,7 +121,7 @@ Stop after each phase, summarize what changed, and say how to verify it.
 
 **Phase 4: PWA and mobile polish**
 
-- Manifest and icons, safe areas, a check at 360–430px wide, and the iOS speech and vibration fallbacks.
+- Manifest and icons, safe areas, a check at 360–430px wide, and iOS speech (vibration is a no-op on iOS).
 
 **Phase 5: Hardening for the demo**
 
