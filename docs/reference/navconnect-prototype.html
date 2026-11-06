@@ -1,0 +1,4227 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta
+      name="description"
+      content="NavConnect: accessible AR hospital wayfinding prototype."
+    />
+    <meta name="theme-color" content="#1546C8" />
+    <style>
+      html {
+        -webkit-text-size-adjust: 100%;
+      }
+      :root {
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+      body {
+        margin: 0;
+      }
+      img {
+        max-width: 100%;
+      }
+      [hidden] {
+        display: none !important;
+      }
+    </style>
+    <title>NavConnect Prototype</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@500;600;700&family=JetBrains+Mono:wght@500;700&family=Noto+Sans+Arabic:wght@400;600;700&display=swap"
+    />
+    <style>
+      /* Layout: a working phone prototype beside the staff console it talks to; on narrow screens a tab switches between them.
+   Route identity comes from hospital floor-line colours (blue, teal, amber, green, red). */
+      :root {
+        --bg: #ebf0f7;
+        --surface: #ffffff;
+        --surface-2: #f4f7fb;
+        --ink: #0d1a2d;
+        --muted: #55667e;
+        --line: #d2dbe7;
+        --accent: #1546c8;
+        --accent-ink: #ffffff;
+        --accent-soft: #e1e8fa;
+        --ok: #1c7f46;
+        --ok-soft: #dff2e6;
+        --warn: #a86300;
+        --warn-soft: #faeed8;
+        --crit: #bf2747;
+        --crit-soft: #fae3e8;
+        --l-blue: #1f63e0;
+        --l-teal: #0a8282;
+        --l-amber: #d98a00;
+        --l-green: #2b9646;
+        --l-red: #d2335f;
+        --frame: #0d1a2d;
+        --shadow: 0 30px 60px -30px rgba(13, 26, 45, 0.45);
+        --ar-ceil: #eceff2;
+        --ar-wl: #d6dce1;
+        --ar-wr: #cbd2d8;
+        --ar-back: #bac4cd;
+        --ar-floor: #a8b2ba;
+        --ar-door: #9fb1c2;
+        --ar-light: #ffffff;
+        --f-display: "Lexend", "Noto Sans Arabic", system-ui, sans-serif;
+        --f-body:
+          "Atkinson Hyperlegible", "Noto Sans Arabic", system-ui, "PingFang SC",
+          "Microsoft YaHei", sans-serif;
+        --f-mono: "JetBrains Mono", ui-monospace, monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --bg: #0a111e;
+          --surface: #121b2c;
+          --surface-2: #18233a;
+          --ink: #e6ecf6;
+          --muted: #93a3ba;
+          --line: #27344d;
+          --accent: #7097ff;
+          --accent-ink: #081025;
+          --accent-soft: #1b2a4e;
+          --ok: #55c987;
+          --ok-soft: #14301f;
+          --warn: #f0b44c;
+          --warn-soft: #33260f;
+          --crit: #ff7a95;
+          --crit-soft: #3a1622;
+          --l-blue: #5b8dff;
+          --l-teal: #2ec4c4;
+          --l-amber: #f2a93b;
+          --l-green: #4cc46a;
+          --l-red: #ff6b8e;
+          --frame: #000000;
+          --shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.8);
+          color-scheme: dark;
+        }
+      }
+      :root[data-theme="dark"] {
+        --bg: #0a111e;
+        --surface: #121b2c;
+        --surface-2: #18233a;
+        --ink: #e6ecf6;
+        --muted: #93a3ba;
+        --line: #27344d;
+        --accent: #7097ff;
+        --accent-ink: #081025;
+        --accent-soft: #1b2a4e;
+        --ok: #55c987;
+        --ok-soft: #14301f;
+        --warn: #f0b44c;
+        --warn-soft: #33260f;
+        --crit: #ff7a95;
+        --crit-soft: #3a1622;
+        --l-blue: #5b8dff;
+        --l-teal: #2ec4c4;
+        --l-amber: #f2a93b;
+        --l-green: #4cc46a;
+        --l-red: #ff6b8e;
+        --frame: #000000;
+        --shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.8);
+        color-scheme: dark;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      body {
+        background: var(--bg);
+        color: var(--ink);
+        font-family: var(--f-body);
+        font-size: 15px;
+        line-height: 1.45;
+        padding-left: max(16px, env(safe-area-inset-left, 0px));
+        padding-right: max(16px, env(safe-area-inset-right, 0px));
+        padding-block: 20px 40px;
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        cursor: pointer;
+      }
+      button:focus-visible,
+      input:focus-visible {
+        outline: 3px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .wrap {
+        max-width: 1260px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+
+      /* page header */
+      .top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .mark {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        background: var(--accent);
+        color: var(--accent-ink);
+        display: grid;
+        place-items: center;
+        flex: none;
+      }
+      .brand h1 {
+        font-family: var(--f-display);
+        font-size: 1.35rem;
+        margin: 0;
+        letter-spacing: -0.01em;
+      }
+      .brand p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      .tabs {
+        display: none;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 4px;
+        gap: 4px;
+      }
+      .tabs button {
+        border: 0;
+        background: none;
+        padding: 8px 16px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+      .tabs button[aria-selected="true"] {
+        background: var(--accent);
+        color: var(--accent-ink);
+      }
+
+      .stage {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 32px;
+        align-items: start;
+      }
+      .phone-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+      .phone-note {
+        font-size: 0.82rem;
+        color: var(--muted);
+        text-align: center;
+        max-width: 390px;
+      }
+
+      /* ---------- PHONE ---------- */
+      .phone {
+        --scale: 1;
+        position: relative;
+        width: 390px;
+        height: 812px;
+        border: 10px solid var(--frame);
+        border-radius: 48px;
+        background: var(--surface);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        font-size: calc(15px * var(--scale));
+        isolation: isolate;
+      }
+      .phone.hc {
+        --surface: #000;
+        --surface-2: #0c0c0c;
+        --ink: #fff;
+        --muted: #f0f0f0;
+        --line: #fff;
+        --accent: #ffd60a;
+        --accent-ink: #000;
+        --accent-soft: #2a2500;
+        --bg: #000;
+      }
+      .sb {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 28px;
+        z-index: 30;
+        font-family: var(--f-mono);
+        font-size: 13px;
+        font-weight: 700;
+        pointer-events: none;
+        color: var(--ink);
+      }
+      .sb.on-ar {
+        color: #0d1a2d;
+      }
+      .sb i {
+        display: inline-block;
+        width: 22px;
+        height: 11px;
+        border: 2px solid currentColor;
+        border-radius: 3px;
+        position: relative;
+      }
+      .sb i::after {
+        content: "";
+        position: absolute;
+        inset: 1px 5px 1px 1px;
+        background: currentColor;
+        border-radius: 1px;
+      }
+      .screens {
+        position: absolute;
+        inset: 0;
+      }
+      .screen {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        background: var(--surface);
+        padding-top: 40px;
+      }
+      .screen-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 4px 20px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .app-h {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 8px 16px 8px 20px;
+        min-height: 56px;
+      }
+      .app-h h2 {
+        font-family: var(--f-display);
+        font-size: 1.1em;
+        margin: 0;
+        flex: 1;
+      }
+      .logo-sm {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: var(--f-display);
+        font-weight: 700;
+        font-size: 1.05em;
+      }
+      .logo-sm .mark {
+        width: 30px;
+        height: 30px;
+        border-radius: 9px;
+      }
+      .h-actions {
+        display: flex;
+        gap: 8px;
+      }
+      .icon-btn {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        display: grid;
+        place-items: center;
+        flex: none;
+      }
+      .pill-btn {
+        height: 44px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0 14px;
+        font-weight: 700;
+        font-size: 0.9em;
+      }
+      .here {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0;
+        color: var(--ok);
+        font-weight: 700;
+        font-size: 0.9em;
+        background: var(--ok-soft);
+        padding: 6px 12px;
+        border-radius: 999px;
+        align-self: flex-start;
+      }
+      .greet {
+        font-family: var(--f-display);
+        font-size: 1.75em;
+        line-height: 1.15;
+        margin: 0;
+        letter-spacing: -0.015em;
+        text-wrap: balance;
+      }
+      .search {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border: 2px solid var(--line);
+        border-radius: 16px;
+        padding: 0 14px;
+        background: var(--surface-2);
+        min-height: 54px;
+      }
+      .search:focus-within {
+        border-color: var(--accent);
+      }
+      .search input {
+        border: 0;
+        background: none;
+        outline: none;
+        font: inherit;
+        font-size: 1em;
+        flex: 1;
+        min-width: 0;
+        color: var(--ink);
+        padding: 14px 0;
+      }
+      .search input::placeholder {
+        color: var(--muted);
+      }
+      .scan-card {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        text-align: start;
+        border: 0;
+        background: var(--accent-soft);
+        border-radius: 18px;
+        padding: 14px 16px;
+      }
+      .scan-card .ci {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: var(--accent);
+        color: var(--accent-ink);
+        display: grid;
+        place-items: center;
+        flex: none;
+      }
+      .scan-card strong {
+        display: block;
+        font-size: 1em;
+      }
+      .scan-card small {
+        color: var(--muted);
+        font-size: 0.85em;
+      }
+      .sec {
+        font-size: 0.78em;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        margin: 4px 0 -6px;
+        font-weight: 700;
+      }
+      .dest-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .dest {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        text-align: start;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        border-radius: 16px;
+        padding: 12px;
+        min-height: 104px;
+        position: relative;
+        overflow: hidden;
+      }
+      .dest::before {
+        content: "";
+        position: absolute;
+        inset: auto 0 0 0;
+        height: 4px;
+        background: var(--lc);
+      }
+      .dest:hover {
+        border-color: var(--lc);
+      }
+      .d-ic {
+        color: var(--lc);
+      }
+      .d-name {
+        font-weight: 700;
+        font-size: 0.95em;
+        line-height: 1.2;
+      }
+      .d-sub {
+        font-size: 0.78em;
+        color: var(--muted);
+      }
+      .empty {
+        grid-column: 1/-1;
+        color: var(--muted);
+        margin: 0;
+      }
+      .fine {
+        font-size: 0.75em;
+        color: var(--muted);
+        margin: 0;
+        line-height: 1.4;
+      }
+      .app-f {
+        padding: 12px 20px 18px;
+        border-top: 1px solid var(--line);
+        display: flex;
+        gap: 10px;
+      }
+      .btn {
+        min-height: 54px;
+        border-radius: 16px;
+        border: 0;
+        font-weight: 700;
+        font-size: 1em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 0 18px;
+      }
+      .btn-primary {
+        background: var(--accent);
+        color: var(--accent-ink);
+        flex: 1;
+      }
+      .btn-ghost {
+        background: var(--surface-2);
+        border: 1px solid var(--line);
+        color: var(--ink);
+      }
+      .btn-help {
+        background: var(--warn-soft);
+        color: var(--warn);
+        flex: 1;
+      }
+
+      /* route */
+      .dest-head {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+      }
+      .dest-head .big-ic {
+        width: 52px;
+        height: 52px;
+        border-radius: 16px;
+        display: grid;
+        place-items: center;
+        background: var(--surface-2);
+        color: var(--lc);
+        border: 2px solid var(--lc);
+        flex: none;
+      }
+      .dest-head h3 {
+        font-family: var(--f-display);
+        font-size: 1.3em;
+        margin: 0;
+        line-height: 1.15;
+      }
+      .dest-head p {
+        margin: 2px 0 0;
+        color: var(--muted);
+        font-size: 0.85em;
+      }
+      .room {
+        font-family: var(--f-mono);
+        font-size: 0.85em;
+        background: var(--surface-2);
+        border: 1px solid var(--line);
+        padding: 1px 6px;
+        border-radius: 6px;
+        color: var(--ink);
+      }
+      .map {
+        background: var(--surface-2);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 26px 6px 6px;
+        position: relative;
+      }
+      .map svg {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .elev-leg {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 10px;
+        padding: 6px 6px 2px;
+        font-size: 0.72em;
+        color: var(--muted);
+      }
+      .elev-leg span {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .elev-leg i {
+        width: 9px;
+        height: 9px;
+        border-radius: 2px;
+        display: inline-block;
+      }
+      .map-cap {
+        position: absolute;
+        top: 10px;
+        inset-inline-start: 12px;
+        font-size: 0.72em;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+      .stat {
+        background: var(--surface-2);
+        border-radius: 14px;
+        padding: 10px 12px;
+      }
+      .stat b {
+        display: block;
+        font-family: var(--f-display);
+        font-size: 1.35em;
+        font-variant-numeric: tabular-nums;
+      }
+      .stat span {
+        font-size: 0.78em;
+        color: var(--muted);
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.82em;
+        font-weight: 700;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: var(--surface-2);
+        border: 1px solid var(--line);
+      }
+      .chip .sw-dot {
+        width: 14px;
+        height: 6px;
+        border-radius: 3px;
+        background: var(--lc);
+      }
+      .chip.warn {
+        background: var(--warn-soft);
+        color: var(--warn);
+        border-color: transparent;
+      }
+      .row-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 14px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+      }
+      .row-toggle strong {
+        display: block;
+        font-size: 0.95em;
+      }
+      .row-toggle small {
+        color: var(--muted);
+        font-size: 0.8em;
+      }
+      .sw {
+        width: 52px;
+        height: 32px;
+        border-radius: 999px;
+        border: 0;
+        background: var(--line);
+        position: relative;
+        flex: none;
+        transition: background 0.2s;
+      }
+      .sw::after {
+        content: "";
+        position: absolute;
+        top: 4px;
+        inset-inline-start: 4px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        transition: transform 0.2s;
+      }
+      .sw[aria-checked="true"] {
+        background: var(--accent);
+      }
+      .sw[aria-checked="true"]::after {
+        transform: translateX(20px);
+      }
+      [dir="rtl"] .sw[aria-checked="true"]::after {
+        transform: translateX(-20px);
+      }
+      .steps {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .steps li {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 10px 0;
+        border-bottom: 1px dashed var(--line);
+      }
+      .steps li:last-child {
+        border-bottom: 0;
+      }
+      .steps .s-ic {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: var(--surface-2);
+        display: grid;
+        place-items: center;
+        flex: none;
+        color: var(--lc);
+      }
+      .steps .s-t {
+        flex: 1;
+        font-size: 0.92em;
+        padding-top: 2px;
+      }
+      .steps .s-m {
+        font-family: var(--f-mono);
+        font-size: 0.8em;
+        color: var(--muted);
+        padding-top: 4px;
+        white-space: nowrap;
+      }
+      .steps .s-floor {
+        display: block;
+        font-size: 0.75em;
+        color: var(--muted);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      /* AR nav */
+      .nav {
+        padding-top: 0;
+        background: #000;
+      }
+      .ar {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        background: var(--ar-back);
+      }
+      .scene {
+        position: absolute;
+        inset: -4% -6%;
+        transition: transform 0.6s ease;
+      }
+      .poly {
+        position: absolute;
+        inset: 0;
+      }
+      .ceil {
+        background: var(--ar-ceil);
+        clip-path: polygon(0 0, 100% 0, 60% 34%, 40% 34%);
+      }
+      .wl {
+        background: linear-gradient(90deg, var(--ar-wl), #e3e8ec);
+        clip-path: polygon(0 0, 40% 34%, 40% 50%, 0 100%);
+      }
+      .wr {
+        background: linear-gradient(270deg, var(--ar-wr), #dce2e7);
+        clip-path: polygon(100% 0, 60% 34%, 60% 50%, 100% 100%);
+      }
+      .back {
+        background: linear-gradient(#c9d2da, var(--ar-back));
+        clip-path: polygon(40% 34%, 60% 34%, 60% 50%, 40% 50%);
+      }
+      .floor {
+        background: linear-gradient(0deg, #9aa5ae, #b7c0c7);
+        clip-path: polygon(0 100%, 40% 50%, 60% 50%, 100% 100%);
+      }
+      .fline {
+        background: var(--lc);
+        clip-path: polygon(45.5% 100%, 54.5% 100%, 50.6% 50%, 49.4% 50%);
+        opacity: 0.9;
+      }
+      .door {
+        background: var(--ar-door);
+      }
+      .d1 {
+        clip-path: polygon(10% 36%, 22% 37.5%, 22% 72.5%, 10% 87.5%);
+      }
+      .d2 {
+        clip-path: polygon(28% 38.2%, 34% 38.9%, 34% 57.5%, 28% 65%);
+      }
+      .d3 {
+        clip-path: polygon(90% 36%, 78% 37.5%, 78% 72.5%, 90% 87.5%);
+      }
+      .d4 {
+        clip-path: polygon(72% 38.2%, 66% 38.9%, 66% 57.5%, 72% 65%);
+      }
+      .sign {
+        background: var(--lc);
+        clip-path: polygon(78.5% 30%, 86% 28.5%, 86% 33.5%, 78.5% 34.6%);
+      }
+      .lt {
+        background: var(--ar-light);
+      }
+      .lt1 {
+        clip-path: polygon(43% 3%, 57% 3%, 55.5% 10%, 44.5% 10%);
+      }
+      .lt2 {
+        clip-path: polygon(46.5% 19%, 53.5% 19%, 52.8% 24%, 47.2% 24%);
+      }
+      .lt3 {
+        clip-path: polygon(48.4% 28%, 51.6% 28%, 51.3% 30.5%, 48.7% 30.5%);
+      }
+      .plane {
+        position: absolute;
+        left: 50%;
+        bottom: -2%;
+        width: 30%;
+        height: 60%;
+        transform: translateX(-50%) perspective(240px) rotateX(58deg);
+        transform-origin: 50% 100%;
+        overflow: hidden;
+      }
+      .chev {
+        position: absolute;
+        left: 50%;
+        width: 66%;
+        aspect-ratio: 2/1.1;
+        transform: translateX(-50%);
+        background: var(--lc);
+        clip-path: polygon(50% 0, 100% 50%, 100% 88%, 50% 38%, 0 88%, 0 50%);
+        animation: chev 2.4s linear infinite;
+        animation-play-state: paused;
+        filter: drop-shadow(0 0 4px #fff);
+      }
+      .chev:nth-child(2) {
+        animation-delay: -0.6s;
+      }
+      .chev:nth-child(3) {
+        animation-delay: -1.2s;
+      }
+      .chev:nth-child(4) {
+        animation-delay: -1.8s;
+      }
+      @keyframes chev {
+        0% {
+          top: -22%;
+          opacity: 0;
+        }
+        15% {
+          opacity: 1;
+        }
+        100% {
+          top: 100%;
+          opacity: 0.95;
+        }
+      }
+      .ar.walking .chev {
+        animation-play-state: running;
+      }
+      .ar.walking .scene {
+        animation: bob 1.1s ease-in-out infinite;
+      }
+      @keyframes bob {
+        50% {
+          transform: translateY(0.6%);
+        }
+      }
+      .scene.pan-left {
+        transform: translateX(9%) rotate(-1.2deg);
+      }
+      .scene.pan-right {
+        transform: translateX(-9%) rotate(1.2deg);
+      }
+      .anchor {
+        position: absolute;
+        left: 50%;
+        top: 40%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        transition:
+          opacity 0.3s,
+          transform 0.3s;
+      }
+      .anchor[hidden] {
+        display: none !important;
+      }
+      .an-arrow {
+        width: 96px;
+        height: 96px;
+        border-radius: 50%;
+        background: var(--lc);
+        color: #fff;
+        display: grid;
+        place-items: center;
+        box-shadow:
+          0 0 0 6px rgba(255, 255, 255, 0.75),
+          0 12px 30px rgba(0, 0, 0, 0.35);
+        animation: pop 1.2s ease-in-out infinite;
+      }
+      @keyframes pop {
+        50% {
+          transform: scale(1.08);
+        }
+      }
+      .an-label {
+        background: rgba(13, 26, 45, 0.88);
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.85em;
+        padding: 6px 12px;
+        border-radius: 999px;
+        white-space: nowrap;
+      }
+      .cam-badge {
+        position: absolute;
+        top: 44px;
+        inset-inline-end: 14px;
+        background: rgba(13, 26, 45, 0.7);
+        color: #fff;
+        font-size: 0.7em;
+        font-weight: 700;
+        padding: 5px 10px;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        z-index: 5;
+      }
+      .cam-badge::before {
+        content: "";
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #ff4d4d;
+      }
+      .nav-card {
+        position: absolute;
+        top: 76px;
+        left: 12px;
+        right: 12px;
+        background: var(--surface);
+        color: var(--ink);
+        border-radius: 22px;
+        padding: 14px 16px;
+        box-shadow: 0 14px 30px rgba(0, 0, 0, 0.25);
+        z-index: 6;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .nv-main {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+      }
+      .nv-ic {
+        width: 64px;
+        height: 64px;
+        border-radius: 18px;
+        background: var(--lc);
+        color: #fff;
+        display: grid;
+        place-items: center;
+        flex: none;
+      }
+      .nv-dist {
+        font-family: var(--f-display);
+        font-size: 1.9em;
+        font-weight: 700;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+      }
+      .nv-text {
+        font-size: 1em;
+        font-weight: 700;
+        line-height: 1.25;
+        margin-top: 4px;
+      }
+      .nv-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        align-items: center;
+        border-top: 1px solid var(--line);
+        padding-top: 8px;
+        font-size: 0.82em;
+        color: var(--muted);
+      }
+      .nv-then {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+      }
+      .nv-then span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .floor-chip {
+        font-family: var(--f-mono);
+        font-weight: 700;
+        color: var(--ink);
+        background: var(--surface-2);
+        border: 1px solid var(--line);
+        padding: 2px 8px;
+        border-radius: 8px;
+        flex: none;
+      }
+      .nav-bottom {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--surface);
+        border-radius: 26px 26px 0 0;
+        padding: 14px 16px 18px;
+        z-index: 6;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.2);
+      }
+      .prog {
+        height: 8px;
+        background: var(--surface-2);
+        border-radius: 99px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+      }
+      .prog i {
+        display: block;
+        height: 100%;
+        width: 0;
+        background: var(--lc);
+        border-radius: 99px;
+        transition: width 0.15s linear;
+      }
+      .nb-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        font-size: 0.88em;
+        color: var(--muted);
+      }
+      .nb-row b {
+        color: var(--ink);
+        font-family: var(--f-display);
+        font-size: 1.25em;
+        font-variant-numeric: tabular-nums;
+      }
+      .ctrls {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+      }
+      .ctrl {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+        border: 1px solid var(--line);
+        background: var(--surface-2);
+        border-radius: 14px;
+        padding: 8px 2px;
+        font-size: 0.68em;
+        font-weight: 700;
+        min-height: 58px;
+        justify-content: center;
+      }
+      .ctrl[aria-pressed="false"] {
+        color: var(--muted);
+        opacity: 0.7;
+      }
+      .ctrl.primary {
+        background: var(--accent);
+        color: var(--accent-ink);
+        border-color: var(--accent);
+      }
+      .ctrl.help {
+        background: var(--warn-soft);
+        color: var(--warn);
+        border-color: transparent;
+      }
+      .ctrl.speaking svg {
+        animation: pop 0.6s ease-in-out infinite;
+      }
+      .reroute {
+        position: absolute;
+        top: 44px;
+        left: 12px;
+        right: 12px;
+        z-index: 8;
+        background: var(--warn);
+        color: #fff;
+        border-radius: 14px;
+        padding: 10px 14px;
+        font-weight: 700;
+        font-size: 0.88em;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+      }
+      .riding {
+        position: absolute;
+        inset: 0;
+        z-index: 9;
+        background: rgba(13, 26, 45, 0.82);
+        display: grid;
+        place-items: center;
+        color: #fff;
+        text-align: center;
+      }
+      .riding .rc {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+      .riding .fl {
+        font-family: var(--f-display);
+        font-size: 4em;
+        font-weight: 700;
+        line-height: 1;
+      }
+      .riding p {
+        margin: 0;
+        font-weight: 700;
+      }
+
+      /* arrive */
+      .arrive-body {
+        align-items: center;
+        text-align: center;
+        justify-content: center;
+      }
+      .done-ring {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: var(--ok-soft);
+        color: var(--ok);
+        display: grid;
+        place-items: center;
+        animation: rise 0.5s ease-out;
+      }
+      @keyframes rise {
+        from {
+          transform: scale(0.6);
+          opacity: 0;
+        }
+      }
+      .arrive-body h2 {
+        font-family: var(--f-display);
+        font-size: 1.7em;
+        margin: 0;
+      }
+      .arrive-body .dn {
+        font-size: 1.15em;
+        font-weight: 700;
+        margin: 0;
+      }
+      .arrive-body p {
+        margin: 0;
+        color: var(--muted);
+        max-width: 30ch;
+      }
+      .recept {
+        width: 100%;
+        border: 2px dashed var(--line);
+        border-radius: 18px;
+        padding: 16px;
+        display: flex;
+        justify-content: space-around;
+        gap: 10px;
+      }
+      .recept div {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .recept span {
+        font-size: 0.75em;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-weight: 700;
+      }
+      .recept b {
+        font-family: var(--f-mono);
+        font-size: 1.2em;
+      }
+
+      /* settings */
+      .set-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .set-group > label,
+      .set-label {
+        font-weight: 700;
+        font-size: 0.9em;
+      }
+      .seg {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: 1fr;
+        gap: 6px;
+        background: var(--surface-2);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 4px;
+      }
+      .seg button {
+        border: 0;
+        background: none;
+        border-radius: 10px;
+        min-height: 44px;
+        font-weight: 700;
+        padding: 0 6px;
+      }
+      .seg button[aria-pressed="true"] {
+        background: var(--surface);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+        color: var(--accent);
+      }
+      .phone.hc .seg button[aria-pressed="true"] {
+        background: var(--accent);
+        color: var(--accent-ink);
+      }
+      .legend {
+        font-size: 0.82em;
+        color: var(--muted);
+        background: var(--surface-2);
+        border-radius: 12px;
+        padding: 10px 12px;
+        margin: 0;
+      }
+
+      /* overlays inside phone */
+      .sheet-wrap {
+        position: absolute;
+        inset: 0;
+        z-index: 20;
+        background: rgba(13, 26, 45, 0.5);
+        display: flex;
+        align-items: flex-end;
+      }
+      .sheet {
+        background: var(--surface);
+        color: var(--ink);
+        width: 100%;
+        border-radius: 26px 26px 0 0;
+        padding: 20px 20px 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        animation: up 0.25s ease-out;
+        max-height: 90%;
+        overflow: auto;
+      }
+      @keyframes up {
+        from {
+          transform: translateY(40%);
+        }
+      }
+      .sheet h3 {
+        font-family: var(--f-display);
+        font-size: 1.3em;
+        margin: 0;
+      }
+      .sheet p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.9em;
+      }
+      .reasons {
+        display: grid;
+        gap: 8px;
+      }
+      .reason {
+        border: 2px solid var(--line);
+        background: var(--surface);
+        border-radius: 14px;
+        padding: 12px 14px;
+        text-align: start;
+        font-weight: 700;
+        min-height: 50px;
+      }
+      .opt {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        text-align: start;
+        border: 2px solid var(--line);
+        border-radius: 16px;
+        padding: 14px;
+        background: var(--surface);
+      }
+      .opt:hover {
+        border-color: var(--accent);
+      }
+      .opt .oi {
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        background: var(--accent-soft);
+        color: var(--accent);
+        flex: none;
+      }
+      .opt .oi.warn {
+        background: var(--warn-soft);
+        color: var(--warn);
+      }
+      .opt strong {
+        display: block;
+        font-size: 1.02em;
+      }
+      .opt small {
+        color: var(--muted);
+        font-size: 0.85em;
+      }
+      .reason[aria-pressed="true"] {
+        border-color: var(--accent);
+        background: var(--accent-soft);
+      }
+      .wait {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        text-align: center;
+        padding: 10px 0;
+      }
+      .spinner {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        border: 5px solid var(--accent-soft);
+        border-top-color: var(--accent);
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .vol-ok {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: var(--ok-soft);
+        color: var(--ok);
+        display: grid;
+        place-items: center;
+      }
+      .scan-ov {
+        position: absolute;
+        inset: 0;
+        z-index: 20;
+        background: #0d1a2d;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        color: #fff;
+        padding: 24px;
+      }
+      .vf {
+        width: 78%;
+        aspect-ratio: 3/4;
+        position: relative;
+        border-radius: 14px;
+        overflow: hidden;
+        background: #f4f4f0;
+      }
+      .vf .ln {
+        position: absolute;
+        left: 12%;
+        height: 5%;
+        background: #c9cdd3;
+        border-radius: 3px;
+      }
+      .vf .hl {
+        background: #7da2ff;
+      }
+      .vf .beam {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: #5cf2b2;
+        box-shadow: 0 0 14px #5cf2b2;
+        animation: beam 1.4s ease-in-out infinite alternate;
+      }
+      @keyframes beam {
+        from {
+          top: 6%;
+        }
+        to {
+          top: 92%;
+        }
+      }
+      .vf::after {
+        content: "";
+        position: absolute;
+        inset: 8px;
+        border: 3px solid rgba(92, 242, 178, 0.8);
+        border-radius: 10px;
+      }
+      .scan-ov p {
+        margin: 0;
+        font-weight: 700;
+        font-size: 1.05em;
+        text-align: center;
+      }
+      .hap-toast {
+        position: absolute;
+        left: 50%;
+        bottom: 220px;
+        transform: translateX(-50%);
+        z-index: 15;
+        background: rgba(13, 26, 45, 0.92);
+        color: #fff;
+        border-radius: 999px;
+        padding: 8px 16px;
+        font-weight: 700;
+        font-size: 0.85em;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+        pointer-events: none;
+      }
+      .phone.buzz {
+        animation: buzz 0.12s linear;
+      }
+      @keyframes buzz {
+        25% {
+          transform: translateX(-3px);
+        }
+        75% {
+          transform: translateX(3px);
+        }
+      }
+
+      /* ---------- CONSOLE ---------- */
+      .console {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        min-width: 0;
+      }
+      .c-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .eyebrow {
+        margin: 0;
+        font-size: 0.75rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        font-weight: 700;
+      }
+      .c-head h2 {
+        font-family: var(--f-display);
+        margin: 2px 0 0;
+        font-size: 1.45rem;
+        letter-spacing: -0.01em;
+      }
+      .tag {
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 5px 10px;
+        border-radius: 999px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        color: var(--muted);
+      }
+      .tip {
+        margin: 0;
+        background: var(--accent-soft);
+        border-radius: 14px;
+        padding: 12px 14px;
+        font-size: 0.9rem;
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+      }
+      .tip svg {
+        flex: none;
+        color: var(--accent);
+        margin-top: 1px;
+      }
+      .tiles {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        overflow: hidden;
+      }
+      .tile {
+        padding: 14px 16px;
+        border-inline-end: 1px solid var(--line);
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .tile:last-child {
+        border-inline-end: 0;
+      }
+      .tile span {
+        font-size: 0.78rem;
+        color: var(--muted);
+      }
+      .tile b {
+        font-family: var(--f-display);
+        font-size: 1.7rem;
+        font-variant-numeric: tabular-nums;
+        line-height: 1.1;
+      }
+      .tile small {
+        font-size: 0.75rem;
+        color: var(--muted);
+      }
+      .tile.alert b {
+        color: var(--crit);
+      }
+      .c-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-width: 0;
+      }
+      .panel h3 {
+        margin: 0;
+        font-family: var(--f-display);
+        font-size: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+      .panel h3 .cnt {
+        font-family: var(--f-mono);
+        font-size: 0.8rem;
+        background: var(--crit-soft);
+        color: var(--crit);
+        padding: 2px 8px;
+        border-radius: 99px;
+      }
+      .req {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        border-inline-start: 5px solid var(--line);
+      }
+      .req.open {
+        border-inline-start-color: var(--crit);
+      }
+      .req.assigned {
+        border-inline-start-color: var(--ok);
+      }
+      .req.live {
+        background: var(--accent-soft);
+      }
+      .req-main {
+        flex: 1;
+        min-width: 0;
+      }
+      .req-main strong {
+        display: block;
+        font-size: 0.92rem;
+      }
+      .req-main small {
+        color: var(--muted);
+        font-size: 0.8rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+      }
+      .lang-tag {
+        font-family: var(--f-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 1px 6px;
+        border-radius: 5px;
+        background: var(--surface-2);
+        border: 1px solid var(--line);
+        color: var(--ink);
+      }
+      .live-tag {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--accent);
+      }
+      .c-btn {
+        border: 0;
+        background: var(--accent);
+        color: var(--accent-ink);
+        font-weight: 700;
+        font-size: 0.82rem;
+        border-radius: 10px;
+        padding: 8px 12px;
+        white-space: nowrap;
+      }
+      .status {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--ok);
+        background: var(--ok-soft);
+        padding: 4px 10px;
+        border-radius: 99px;
+        white-space: nowrap;
+      }
+      .closure {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .closure:last-child {
+        border-bottom: 0;
+      }
+      .closure strong {
+        display: block;
+        font-size: 0.92rem;
+      }
+      .closure small {
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+      .closure.on strong {
+        color: var(--crit);
+      }
+      .bars {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+      }
+      .bar {
+        display: grid;
+        grid-template-columns: minmax(0, 9.5rem) minmax(0, 1fr) 2.5rem;
+        gap: 10px;
+        align-items: center;
+        font-size: 0.85rem;
+      }
+      .bar span:first-child {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .bar .tr {
+        height: 10px;
+        background: var(--surface-2);
+        border-radius: 99px;
+        overflow: hidden;
+      }
+      .bar .tr i {
+        display: block;
+        height: 100%;
+        background: var(--lc);
+        border-radius: 99px;
+        transition: width 0.4s;
+      }
+      .bar b {
+        font-family: var(--f-mono);
+        font-size: 0.8rem;
+        text-align: end;
+        font-variant-numeric: tabular-nums;
+      }
+      .stack {
+        display: flex;
+        height: 12px;
+        border-radius: 99px;
+        overflow: hidden;
+        gap: 2px;
+      }
+      .stack i {
+        display: block;
+        height: 100%;
+      }
+      .stack-leg {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 14px;
+        font-size: 0.78rem;
+        color: var(--muted);
+      }
+      .stack-leg span {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .stack-leg i {
+        width: 9px;
+        height: 9px;
+        border-radius: 2px;
+        display: inline-block;
+      }
+      .sub-h {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        font-weight: 700;
+        margin: 4px 0 0;
+      }
+      .feed {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        max-height: 260px;
+        overflow: auto;
+      }
+      .feed li {
+        display: grid;
+        grid-template-columns: 4.6rem minmax(0, 1fr);
+        gap: 8px;
+        font-size: 0.85rem;
+        padding: 7px 0;
+        border-bottom: 1px dashed var(--line);
+      }
+      .feed li:last-child {
+        border-bottom: 0;
+      }
+      .feed time {
+        font-family: var(--f-mono);
+        font-size: 0.76rem;
+        color: var(--muted);
+        padding-top: 2px;
+      }
+      .feed li.new {
+        animation: flash 1.6s ease-out;
+      }
+      @keyframes flash {
+        from {
+          background: var(--accent-soft);
+        }
+      }
+
+      @media (max-width: 1100px) {
+        .c-grid {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      @media (max-width: 980px) {
+        .stage {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .tabs {
+          display: flex;
+        }
+        .stage[data-view="phone"] .console {
+          display: none;
+        }
+        .stage[data-view="console"] .phone-col {
+          display: none;
+        }
+        .phone {
+          width: 100%;
+          max-width: 430px;
+          height: min(812px, calc(100dvh - 150px));
+          min-height: 640px;
+          border-width: 1px;
+          border-color: var(--line);
+          border-radius: 26px;
+        }
+        .sb {
+          display: none;
+        }
+        .screen {
+          padding-top: 6px;
+        }
+        .cam-badge {
+          top: 12px;
+        }
+        .reroute {
+          top: 10px;
+        }
+        .nav-card {
+          top: 44px;
+        }
+      }
+      @media (max-width: 640px) {
+        .tiles {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .tile:nth-child(2) {
+          border-inline-end: 0;
+        }
+        .tile:nth-child(-n + 2) {
+          border-bottom: 1px solid var(--line);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="top">
+        <div class="brand">
+          <div class="mark" aria-hidden="true">
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M12 2.5l7 18-7-4-7 4z" />
+            </svg>
+          </div>
+          <div>
+            <h1>NavConnect</h1>
+            <p>
+              Pilot concept for Lakeridge Health Oshawa · Where every step
+              matters
+            </p>
+          </div>
+        </div>
+        <div class="tabs" role="tablist">
+          <button role="tab" id="tab-phone" aria-selected="true">
+            Patient app
+          </button>
+          <button role="tab" id="tab-console" aria-selected="false">
+            Staff console
+          </button>
+        </div>
+      </header>
+
+      <div class="stage" id="stage" data-view="phone">
+        <div class="phone-col">
+          <div class="phone" id="phone">
+            <div class="sb" id="sb">
+              <span id="clock">3:04</span
+              ><span style="display: flex; gap: 6px; align-items: center"
+                >5G <i></i
+              ></span>
+            </div>
+            <div class="screens" id="screens">
+              <!-- HOME -->
+              <section class="screen" id="s-home">
+                <header class="app-h">
+                  <div class="logo-sm">
+                    <span class="mark"
+                      ><svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.6"
+                        stroke-linejoin="round"
+                      >
+                        <path d="M12 2.5l7 18-7-4-7 4z" /></svg></span
+                    >NavConnect
+                  </div>
+                  <div class="h-actions">
+                    <button
+                      class="pill-btn"
+                      id="btn-lang"
+                      aria-label="Change language"
+                    ></button>
+                    <button
+                      class="icon-btn"
+                      id="btn-settings"
+                      data-aria="settings"
+                    ></button>
+                  </div>
+                </header>
+                <div class="screen-body">
+                  <p class="here">
+                    <span data-ic="pin16"></span><span data-t="here"></span>
+                  </p>
+                  <h2 class="greet" data-t="greet"></h2>
+                  <label class="search"
+                    ><span data-ic="search"></span
+                    ><input
+                      id="q"
+                      type="search"
+                      autocomplete="off"
+                      data-ph="search"
+                  /></label>
+                  <button class="scan-card" id="btn-scan">
+                    <span class="ci" data-ic="camera"></span
+                    ><span
+                      ><strong data-t="scan"></strong
+                      ><small data-t="scanSub"></small
+                    ></span>
+                  </button>
+                  <h3 class="sec" data-t="popular"></h3>
+                  <div class="dest-grid" id="dest-grid"></div>
+                  <p class="fine" data-t="disclaimer"></p>
+                </div>
+                <footer class="app-f">
+                  <button class="btn btn-help js-help">
+                    <span data-ic="help"></span><span data-t="helpBtn"></span>
+                  </button>
+                </footer>
+              </section>
+
+              <!-- ROUTE -->
+              <section class="screen" id="s-route" hidden>
+                <header class="app-h">
+                  <button class="icon-btn js-back" data-aria="back"></button>
+                  <h2 data-t="route"></h2>
+                </header>
+                <div class="screen-body" id="route-body"></div>
+                <footer class="app-f">
+                  <button class="btn btn-primary" id="btn-start">
+                    <span data-ic="up"></span><span data-t="start"></span>
+                  </button>
+                </footer>
+              </section>
+
+              <!-- NAV -->
+              <section class="screen nav" id="s-nav" hidden>
+                <div class="ar" id="ar" dir="ltr">
+                  <div class="scene" id="scene">
+                    <div class="poly ceil"></div>
+                    <div class="poly wl"></div>
+                    <div class="poly wr"></div>
+                    <div class="poly back"></div>
+                    <div class="poly floor"></div>
+                    <div class="poly door d1"></div>
+                    <div class="poly door d2"></div>
+                    <div class="poly door d3"></div>
+                    <div class="poly door d4"></div>
+                    <div class="poly sign"></div>
+                    <div class="poly lt lt1"></div>
+                    <div class="poly lt lt2"></div>
+                    <div class="poly lt lt3"></div>
+                    <div class="poly fline"></div>
+                    <div class="plane">
+                      <i class="chev"></i><i class="chev"></i
+                      ><i class="chev"></i><i class="chev"></i>
+                    </div>
+                  </div>
+                  <div class="anchor" id="an-turn" hidden>
+                    <div class="an-arrow" id="an-turn-ic"></div>
+                  </div>
+                  <div class="anchor" id="an-elev" hidden>
+                    <div class="an-arrow" id="an-elev-ic"></div>
+                    <div class="an-label" id="an-elev-l"></div>
+                  </div>
+                  <div class="anchor" id="an-pin" hidden>
+                    <div class="an-arrow" data-ic="pin40"></div>
+                    <div class="an-label" id="an-pin-l"></div>
+                  </div>
+                  <span class="cam-badge" data-t="cam"></span>
+                </div>
+                <div class="reroute" id="reroute" hidden>
+                  <span data-ic="alert"></span><span id="reroute-t"></span>
+                </div>
+                <div class="nav-card">
+                  <div class="nv-main">
+                    <div class="nv-ic" id="nv-ic"></div>
+                    <div style="min-width: 0">
+                      <div class="nv-dist" id="nv-dist">0 m</div>
+                      <div class="nv-text" id="nv-text"></div>
+                    </div>
+                  </div>
+                  <div class="nv-meta">
+                    <div class="nv-then" id="nv-then">
+                      <b data-t="then"></b><span id="nv-then-t"></span>
+                    </div>
+                    <span class="floor-chip" id="nv-floor"></span>
+                  </div>
+                </div>
+                <div class="nav-bottom">
+                  <div class="prog"><i id="nv-prog"></i></div>
+                  <div class="nb-row">
+                    <span
+                      ><b id="nv-left">0 m</b>
+                      <span data-t="remaining"></span></span
+                    ><span
+                      ><b id="nv-min">0</b> <span data-t="min"></span
+                    ></span>
+                  </div>
+                  <div class="ctrls">
+                    <button class="ctrl" id="c-audio" aria-pressed="true">
+                      <span data-ic="speaker"></span
+                      ><span data-t="audioShort"></span>
+                    </button>
+                    <button class="ctrl" id="c-hap" aria-pressed="true">
+                      <span data-ic="vibrate"></span
+                      ><span data-t="hapShort"></span>
+                    </button>
+                    <button class="ctrl primary" id="c-walk">
+                      <span id="c-walk-ic"></span><span id="c-walk-t"></span>
+                    </button>
+                    <button class="ctrl" id="c-skip">
+                      <span data-ic="skip"></span><span data-t="next"></span>
+                    </button>
+                    <button class="ctrl help js-help">
+                      <span data-ic="help"></span><span data-t="helpBtn"></span>
+                    </button>
+                  </div>
+                  <button
+                    class="btn btn-ghost"
+                    id="c-end"
+                    style="min-height: 44px"
+                  >
+                    <span data-t="end"></span>
+                  </button>
+                </div>
+                <div class="riding" id="riding" hidden>
+                  <div class="rc">
+                    <span data-ic="elev48"></span>
+                    <div class="fl" id="ride-fl">1</div>
+                    <p id="ride-t"></p>
+                  </div>
+                </div>
+              </section>
+
+              <!-- ARRIVE -->
+              <section class="screen" id="s-arrive" hidden>
+                <div class="screen-body arrive-body">
+                  <div class="done-ring" data-ic="check64"></div>
+                  <h2 data-t="arrived"></h2>
+                  <p class="dn" id="ar-dest"></p>
+                  <p data-t="arrivedSub"></p>
+                  <div class="recept">
+                    <div><span data-t="roomL"></span><b id="ar-room"></b></div>
+                    <div><span data-t="total"></span><b id="ar-time"></b></div>
+                  </div>
+                </div>
+                <footer class="app-f">
+                  <button class="btn btn-primary" id="btn-new">
+                    <span data-ic="search"></span><span data-t="home"></span>
+                  </button>
+                </footer>
+              </section>
+
+              <!-- SETTINGS -->
+              <section class="screen" id="s-settings" hidden>
+                <header class="app-h">
+                  <button class="icon-btn js-back" data-aria="back"></button>
+                  <h2 data-t="settings"></h2>
+                </header>
+                <div class="screen-body">
+                  <div class="set-group">
+                    <span class="set-label" data-t="lang"></span>
+                    <div class="seg" id="seg-lang"></div>
+                  </div>
+                  <div class="set-group">
+                    <span class="set-label" data-t="textSize"></span>
+                    <div class="seg" id="seg-size">
+                      <button data-v="1" style="font-size: 0.9em">A</button
+                      ><button data-v="1.15" style="font-size: 1.1em">A</button
+                      ><button data-v="1.3" style="font-size: 1.35em">A</button>
+                    </div>
+                  </div>
+                  <div class="row-toggle">
+                    <div><strong data-t="contrast"></strong></div>
+                    <button
+                      class="sw"
+                      role="switch"
+                      id="sw-hc"
+                      aria-checked="false"
+                      data-aria="contrast"
+                    ></button>
+                  </div>
+                  <div class="row-toggle">
+                    <div><strong data-t="audio"></strong></div>
+                    <button
+                      class="sw"
+                      role="switch"
+                      id="sw-audio"
+                      aria-checked="true"
+                      data-aria="audio"
+                    ></button>
+                  </div>
+                  <div class="row-toggle">
+                    <div><strong data-t="haptic"></strong></div>
+                    <button
+                      class="sw"
+                      role="switch"
+                      id="sw-hap"
+                      aria-checked="true"
+                      data-aria="haptic"
+                    ></button>
+                  </div>
+                  <p class="legend" data-t="legend"></p>
+                  <div class="set-group">
+                    <span class="set-label" data-t="pace"></span>
+                    <div class="seg" id="seg-pace">
+                      <button data-v="n" data-t="paceN"></button
+                      ><button data-v="s" data-t="paceS"></button>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <!-- overlays -->
+            <div class="sheet-wrap" id="help" hidden>
+              <div
+                class="sheet"
+                id="help-sheet"
+                role="dialog"
+                aria-modal="true"
+              ></div>
+            </div>
+            <div class="scan-ov" id="scan" hidden>
+              <div class="vf">
+                <span class="ln" style="top: 10%; width: 40%"></span
+                ><span class="ln hl" style="top: 22%; width: 62%"></span
+                ><span class="ln" style="top: 34%; width: 70%"></span
+                ><span class="ln" style="top: 42%; width: 55%"></span
+                ><span class="ln hl" style="top: 54%; width: 46%"></span
+                ><span class="ln" style="top: 66%; width: 72%"></span
+                ><span class="ln" style="top: 74%; width: 60%"></span
+                ><span class="beam"></span>
+              </div>
+              <p id="scan-t"></p>
+            </div>
+            <div class="hap-toast" id="hap" hidden></div>
+          </div>
+          <p class="phone-note">
+            Routes follow Lakeridge Health's published visitor directions for
+            the Oshawa hospital. The map is traced from Lakeridge's LHO site
+            map; distances are estimates. Directions are spoken aloud when sound
+            is on. Phones that support it vibrate for turn cues; everywhere else
+            the phone shakes on screen.
+          </p>
+        </div>
+
+        <!-- STAFF CONSOLE -->
+        <section class="console" id="console" aria-label="Staff console">
+          <div class="c-head">
+            <div>
+              <p class="eyebrow">Staff &amp; volunteer console · concept</p>
+              <h2>Lakeridge Health Oshawa · 1 Hospital Court</h2>
+            </div>
+            <span class="tag">Sample data · not live hospital data</span>
+          </div>
+          <p class="tip">
+            <span data-ic="info"></span
+            ><span
+              >Try the full loop: start a route to the <b>Dialysis Unit</b> on
+              the phone, then mark the <b>Purple Elevator</b> out of service
+              below. The phone offers a detour or a volunteer; pick the
+              volunteer and the request lands here for you to assign. Closures
+              are demo scenarios, not real outages.</span
+            >
+          </p>
+          <div class="tiles">
+            <div class="tile">
+              <span>Active navigations</span><b id="t-active">23</b
+              ><small>right now</small>
+            </div>
+            <div class="tile alert">
+              <span>Open help requests</span><b id="t-help">1</b
+              ><small>waiting for a volunteer</small>
+            </div>
+            <div class="tile">
+              <span>Median time to destination</span
+              ><b>5.8<small style="font-size: 0.9rem"> min</small></b
+              ><small>today</small>
+            </div>
+            <div class="tile">
+              <span>Arrivals today</span><b id="t-arr">412</b
+              ><small>completed routes</small>
+            </div>
+          </div>
+          <div class="c-grid">
+            <div class="panel">
+              <h3>
+                Help requests <span class="cnt" id="req-cnt">1 open</span>
+              </h3>
+              <div
+                id="reqs"
+                style="display: flex; flex-direction: column; gap: 8px"
+              ></div>
+            </div>
+            <div class="panel">
+              <h3>Closures &amp; escorts</h3>
+              <div>
+                <div class="closure" id="cl-cElev">
+                  <div>
+                    <strong>Purple Elevator · C Wing</strong
+                    ><small
+                      >Affects Cardiology (Floor 7) and Dialysis (Floor 8).
+                      Visitors choose a detour via the Grey Elevator (A Wing) or
+                      a volunteer escort.</small
+                    >
+                  </div>
+                  <button
+                    class="sw"
+                    role="switch"
+                    aria-checked="false"
+                    data-k="cElev"
+                    aria-label="Mark the Purple Elevator closed"
+                  ></button>
+                </div>
+                <div class="closure" id="cl-aWing">
+                  <div>
+                    <strong>A Wing hallway</strong
+                    ><small
+                      >Affects Diagnostic Imaging (X-ray, ultrasound, CT).
+                      Visitors choose a detour through the Food Court and F Wing
+                      or a volunteer escort.</small
+                    >
+                  </div>
+                  <button
+                    class="sw"
+                    role="switch"
+                    aria-checked="false"
+                    data-k="aWing"
+                    aria-label="Mark A Wing hallway closed"
+                  ></button>
+                </div>
+              </div>
+            </div>
+            <div class="panel">
+              <h3>Top destinations today</h3>
+              <div class="bars" id="bars"></div>
+              <p class="sub-h">Navigation language</p>
+              <div class="stack" id="stack"></div>
+              <div class="stack-leg" id="stack-leg"></div>
+            </div>
+            <div class="panel">
+              <h3>Activity</h3>
+              <ul class="feed" id="feed"></ul>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const $ = (s) => document.querySelector(s),
+          $$ = (s) => [...document.querySelectorAll(s)];
+
+        /* ---------- icons ---------- */
+        const P = {
+          up: '<path d="M12 20V5"/><path d="M6 11l6-6 6 6"/>',
+          down: '<path d="M12 4v15"/><path d="M6 13l6 6 6-6"/>',
+          left: '<path d="M16 20v-7a4 4 0 0 0-4-4H5"/><path d="M9 5L5 9l4 4"/>',
+          right:
+            '<path d="M8 20v-7a4 4 0 0 1 4-4h7"/><path d="M15 5l4 4-4 4"/>',
+          elev: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9.5 9.5L12 7l2.5 2.5"/><path d="M9.5 14.5L12 17l2.5-2.5"/>',
+          pin: '<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',
+          info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.8h.01"/>',
+          scan: '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><circle cx="12" cy="12" r="3.5"/>',
+          magnet:
+            '<path d="M6 4v8a6 6 0 0 0 12 0V4h-4v8a2 2 0 0 1-4 0V4z"/><path d="M6 8h4M14 8h4"/>',
+          atom: '<circle cx="12" cy="12" r="1.6"/><ellipse cx="12" cy="12" rx="9" ry="3.6"/><ellipse cx="12" cy="12" rx="9" ry="3.6" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9" ry="3.6" transform="rotate(-60 12 12)"/>',
+          ribbon:
+            '<path d="M12 3a3.5 3.5 0 0 0-3.5 3.5c0 2.4 1.7 4.6 3.5 6.6 1.8-2 3.5-4.2 3.5-6.6A3.5 3.5 0 0 0 12 3z"/><path d="M10 15l-3.5 6 3-1.2 1.5 2.7 2.3-4.5M14 15l3.5 6-3-1.2-1.5 2.7"/>',
+          drop: '<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>',
+          pill: '<path d="M10.6 3.9a5 5 0 0 1 7.1 7.1l-6.7 6.7a5 5 0 0 1-7.1-7.1z"/><path d="M7.3 7.3l7 7"/>',
+          heart:
+            '<path d="M12 20s-8-5-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 9c0 6-8 11-8 11z"/>',
+          search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
+          globe:
+            '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+          settings:
+            '<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',
+          back: '<path d="M15 5l-7 7 7 7"/>',
+          fwd: '<path d="M9 5l7 7-7 7"/>',
+          speaker:
+            '<path d="M4 9.5v5h4l5 4v-13l-5 4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/>',
+          vibrate:
+            '<rect x="8" y="4" width="8" height="16" rx="2"/><path d="M4 8v8M20 8v8"/>',
+          play: '<path d="M7 5l12 7-12 7z"/>',
+          pause: '<path d="M8 5v14M16 5v14"/>',
+          skip: '<path d="M5 5l10 7-10 7z"/><path d="M19 5v14"/>',
+          help: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14"/><path d="M12 17h.01"/>',
+          check: '<path d="M5 12.5l4.5 4.5L19 7"/>',
+          camera:
+            '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
+          alert:
+            '<path d="M12 4l9 16H3z"/><path d="M12 10v4"/><path d="M12 17h.01"/>',
+        };
+        function ic(n, s = 20, w = 2) {
+          return `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n] || ""}</svg>`;
+        }
+        const IC_ALIAS = {
+          pin16: ["pin", 16],
+          pin40: ["pin", 44, 2.4],
+          elev48: ["elev", 52],
+          check64: ["check", 64, 2.6],
+        };
+        function paintIcons(root = document) {
+          root.querySelectorAll("[data-ic]").forEach((el) => {
+            const k = el.dataset.ic;
+            const a = IC_ALIAS[k];
+            el.innerHTML = a ? ic(a[0], a[1], a[2]) : ic(k);
+          });
+        }
+
+        /* ---------- strings ---------- */
+        const I = {
+          en: {
+            name: "English",
+            code: "EN",
+            voice: "en-CA",
+            here: "You are at the main entrance, Hospital Court",
+            greet: "Where are you going?",
+            search: "Search clinics, services, wings",
+            popular: "Lakeridge Health Oshawa",
+            scan: "Scan appointment letter",
+            scanSub: "Point your camera at the clinic name",
+            scanning: "Reading your letter…",
+            found: "Found: Diagnostic Imaging (CT), 3:30 PM",
+            disclaimer:
+              "NavConnect concept prototype for Lakeridge Health Oshawa. Not an official Lakeridge Health app. Directions are based on Lakeridge Health's published visitor directions; the map is traced from Lakeridge's site map and distances are estimates.",
+            route: "Your route",
+            start: "Start navigation",
+            steps: "steps",
+            min: "min",
+            floor: "Floor",
+            dist: "approx.",
+            mainFl: "Main floor",
+            floorChange: "Includes an elevator or escalator",
+            closedNote: "Part of this route is closed right now",
+            schematic: "Main floor · from the LHO site map",
+            arrived: "You have arrived",
+            arrivedSub:
+              "Check in at reception. Show this screen if you need help.",
+            total: "Time",
+            roomL: "Location",
+            helpBtn: "Help",
+            helpTitle: "Get help from a volunteer",
+            helpSub:
+              "Choose what you need. A volunteer or staff member will come to you.",
+            reasons: [
+              "I'm lost",
+              "I need a wheelchair",
+              "I need an interpreter",
+              "Something else",
+            ],
+            shareLoc: "Your location will be shared with staff.",
+            send: "Send request",
+            sent: "Request sent",
+            sentSub: "Stay where you are. Average wait is about 4 minutes.",
+            assigned: "{name} is coming to you",
+            assignedSub:
+              "They know where you are and which language you speak.",
+            close: "Close",
+            cancel: "Cancel",
+            escortTitle: "Part of your route is closed",
+            escortSub:
+              "A volunteer is being sent to guide you another way. Stay where you are.",
+            settings: "Accessibility",
+            textSize: "Text size",
+            contrast: "High contrast",
+            audio: "Spoken directions",
+            haptic: "Vibration cues",
+            lang: "Language",
+            pace: "Walking pace",
+            paceN: "Standard",
+            paceS: "Slower",
+            legend:
+              "Vibration patterns. Turn left: 2 short. Turn right: 3 short. Elevator or escalator: 2 long. Arrived: 1 long.",
+            walk: "Walk",
+            pause: "Pause",
+            next: "Skip",
+            end: "End navigation",
+            audioShort: "Voice",
+            hapShort: "Vibrate",
+            then: "Then",
+            remaining: "to go",
+            home: "New destination",
+            rerouted:
+              "Part of your route just closed. A volunteer is on the way.",
+            cam: "Simulated camera view",
+            riding: "Riding the Purple Elevator",
+            goingDown: "Going down to Level B1",
+            none: "No match. Try another word, or tap Help.",
+            vib: "Vibration",
+            inM: "In about {m} metres, ",
+            arrivedSay: "You have arrived at {dest}.",
+            a: {
+              straight: "Continue straight past {lm}",
+              left: "Turn left at {lm}",
+              right: "Turn right at {lm}",
+              elev: "Take the Purple Elevator (C Wing) to Floor {f}",
+              down: "Go down to Level B1 by escalator or elevator",
+              arrive: "{dest} will be {side}",
+            },
+            sides: {
+              left: "on your left",
+              right: "on your right",
+              ahead: "straight ahead",
+              end: "at the end of the hallway",
+              signs: "nearby. Follow the signs",
+            },
+            lm: {
+              revolving: "the revolving doors",
+              gift: "the gift shop",
+              aWing: "the A Wing hallway",
+              coffee: "the coffee kiosk",
+              gElev: "the Blue Elevator (G Wing)",
+              cancer: "the cancer centre",
+            },
+            mapL: {
+              entrance: "Main entrance",
+              food: "Food Court",
+              er: "Emergency",
+            },
+            dest: {
+              img: "Diagnostic Imaging",
+              mri: "MRI Registration",
+              nuc: "Nuclear Medicine & PET-CT",
+              breast: "Breast Assessment Centre",
+              card: "Cardiology Units",
+              dial: "Dialysis Unit",
+              cancer: "Durham Regional Cancer Centre",
+              pharm: "PureHealth Pharmacy",
+            },
+            subs: {
+              img: "A Wing · X-ray, ultrasound, CT",
+              mri: "N Wing · Level B1",
+              nuc: "N Wing · Main floor",
+              breast: "N Wing · Level B1 · Mammography",
+              card: "C Wing · Floor 7 · Purple Elevator",
+              dial: "C Wing · Floor 8 · Purple Elevator",
+              cancer: "Toward C Wing, off the A Wing hallway",
+              pharm: "Main lobby",
+            },
+          },
+          fr: {
+            name: "Français",
+            code: "FR",
+            voice: "fr-CA",
+            here: "Vous êtes à l'entrée principale (Hospital Court)",
+            greet: "Où allez-vous ?",
+            search: "Rechercher une clinique, un service, une aile",
+            popular: "Lakeridge Health Oshawa",
+            scan: "Numériser la lettre de rendez-vous",
+            scanSub: "Pointez la caméra vers le nom de la clinique",
+            scanning: "Lecture de votre lettre…",
+            found: "Trouvé : Imagerie diagnostique (TDM), 15 h 30",
+            disclaimer:
+              "Prototype conceptuel NavConnect pour Lakeridge Health Oshawa. Ce n'est pas une application officielle de Lakeridge Health. Les directions s'appuient sur les indications publiées par Lakeridge Health; le plan est tracé d'après le plan du site de Lakeridge et les distances sont approximatives.",
+            route: "Votre itinéraire",
+            start: "Démarrer",
+            steps: "étapes",
+            min: "min",
+            floor: "Étage",
+            dist: "environ",
+            mainFl: "Étage principal",
+            floorChange: "Comprend un ascenseur ou un escalier mécanique",
+            closedNote: "Une partie de cet itinéraire est fermée",
+            schematic: "Étage principal · d'après le plan du site",
+            arrived: "Vous êtes arrivé",
+            arrivedSub:
+              "Présentez-vous à l'accueil. Montrez cet écran si vous avez besoin d'aide.",
+            total: "Durée",
+            roomL: "Emplacement",
+            helpBtn: "Aide",
+            helpTitle: "Obtenir l'aide d'un bénévole",
+            helpSub:
+              "Choisissez ce dont vous avez besoin. Un bénévole ou un membre du personnel viendra vous voir.",
+            reasons: [
+              "Je suis perdu",
+              "J'ai besoin d'un fauteuil roulant",
+              "J'ai besoin d'un interprète",
+              "Autre chose",
+            ],
+            shareLoc: "Votre position sera partagée avec le personnel.",
+            send: "Envoyer la demande",
+            sent: "Demande envoyée",
+            sentSub:
+              "Restez où vous êtes. L'attente moyenne est d'environ 4 minutes.",
+            assigned: "{name} arrive vers vous",
+            assignedSub:
+              "Cette personne sait où vous êtes et quelle langue vous parlez.",
+            close: "Fermer",
+            cancel: "Annuler",
+            escortTitle: "Une partie de votre itinéraire est fermée",
+            escortSub:
+              "Un bénévole vient vous guider par un autre chemin. Restez où vous êtes.",
+            settings: "Accessibilité",
+            textSize: "Taille du texte",
+            contrast: "Contraste élevé",
+            audio: "Directions vocales",
+            haptic: "Vibrations",
+            lang: "Langue",
+            pace: "Rythme de marche",
+            paceN: "Normal",
+            paceS: "Plus lent",
+            legend:
+              "Vibrations. Gauche : 2 courtes. Droite : 3 courtes. Ascenseur ou escalier mécanique : 2 longues. Arrivée : 1 longue.",
+            walk: "Marcher",
+            pause: "Pause",
+            next: "Avancer",
+            end: "Terminer",
+            audioShort: "Voix",
+            hapShort: "Vibrer",
+            then: "Ensuite",
+            remaining: "restants",
+            home: "Nouvelle destination",
+            rerouted:
+              "Une partie de votre itinéraire vient de fermer. Un bénévole arrive.",
+            cam: "Vue caméra simulée",
+            riding: "Ascenseur violet",
+            goingDown: "Descente au niveau B1",
+            none: "Aucun résultat. Essayez un autre mot ou touchez Aide.",
+            vib: "Vibration",
+            inM: "Dans environ {m} mètres, ",
+            arrivedSay: "Vous êtes arrivé : {dest}.",
+            a: {
+              straight: "Continuez tout droit {lm}",
+              left: "Tournez à gauche {lm}",
+              right: "Tournez à droite {lm}",
+              elev: "Prenez l'ascenseur violet (aile C) jusqu'au {f}e étage",
+              down: "Descendez au niveau B1 par l'escalier mécanique ou l'ascenseur",
+              arrive: "{dest} sera {side}",
+            },
+            sides: {
+              left: "sur votre gauche",
+              right: "sur votre droite",
+              ahead: "droit devant",
+              end: "au bout du couloir",
+              signs: "à proximité. Suivez les panneaux",
+            },
+            lm: {
+              revolving: "après les portes tournantes",
+              gift: "après la boutique de cadeaux",
+              aWing: "au couloir de l'aile A",
+              coffee: "après le kiosque à café",
+              gElev: "après l'ascenseur bleu (aile G)",
+              cancer: "à travers le centre de cancérologie",
+            },
+            mapL: {
+              entrance: "Entrée principale",
+              food: "Aire de restauration",
+              er: "Urgences",
+            },
+            dest: {
+              img: "Imagerie diagnostique",
+              mri: "Inscription IRM",
+              nuc: "Médecine nucléaire et TEP-TDM",
+              breast: "Centre d'évaluation du sein",
+              card: "Unités de cardiologie",
+              dial: "Unité de dialyse",
+              cancer: "Centre régional de cancérologie de Durham",
+              pharm: "Pharmacie PureHealth",
+            },
+            subs: {
+              img: "Aile A · Radiographie, échographie, TDM",
+              mri: "Aile N · Niveau B1",
+              nuc: "Aile N · Étage principal",
+              breast: "Aile N · Niveau B1 · Mammographie",
+              card: "Aile C · 7e étage · Ascenseur violet",
+              dial: "Aile C · 8e étage · Ascenseur violet",
+              cancer: "Vers l'aile C, depuis le couloir de l'aile A",
+              pharm: "Hall principal",
+            },
+          },
+          ar: {
+            name: "العربية",
+            code: "AR",
+            voice: "ar-SA",
+            rtl: true,
+            here: "أنت عند المدخل الرئيسي (Hospital Court)",
+            greet: "إلى أين تريد الذهاب؟",
+            search: "ابحث عن عيادة أو خدمة أو جناح",
+            popular: "Lakeridge Health Oshawa",
+            scan: "امسح رسالة الموعد",
+            scanSub: "وجّه الكاميرا نحو اسم العيادة",
+            scanning: "جارٍ قراءة الرسالة…",
+            found: "تم العثور على: التصوير التشخيصي (مقطعي)، 3:30 مساءً",
+            disclaimer:
+              "نموذج أولي تجريبي من NavConnect لمستشفى Lakeridge Health Oshawa، وليس تطبيقًا رسميًا لـ Lakeridge Health. الإرشادات مبنية على التوجيهات المنشورة من Lakeridge Health، والخريطة مرسومة من خريطة موقع Lakeridge والمسافات تقريبية.",
+            route: "مسارك",
+            start: "ابدأ التوجيه",
+            steps: "خطوات",
+            min: "دقيقة",
+            floor: "الطابق",
+            dist: "تقريبًا",
+            mainFl: "الطابق الرئيسي",
+            floorChange: "يتضمن مصعدًا أو سلمًا متحركًا",
+            closedNote: "جزء من هذا المسار مغلق حاليًا",
+            schematic: "الطابق الرئيسي · من خريطة الموقع",
+            arrived: "لقد وصلت",
+            arrivedSub:
+              "سجّل حضورك في مكتب الاستقبال. اعرض هذه الشاشة إذا احتجت إلى مساعدة.",
+            total: "المدة",
+            roomL: "الموقع",
+            helpBtn: "مساعدة",
+            helpTitle: "اطلب مساعدة متطوع",
+            helpSub: "اختر ما تحتاجه. سيأتي إليك متطوع أو أحد الموظفين.",
+            reasons: [
+              "أنا تائه",
+              "أحتاج إلى كرسي متحرك",
+              "أحتاج إلى مترجم",
+              "شيء آخر",
+            ],
+            shareLoc: "سيتم مشاركة موقعك مع الموظفين.",
+            send: "أرسل الطلب",
+            sent: "تم إرسال الطلب",
+            sentSub: "ابقَ في مكانك. متوسط الانتظار حوالي 4 دقائق.",
+            assigned: "{name} في الطريق إليك",
+            assignedSub: "يعرف مكانك واللغة التي تتحدثها.",
+            close: "إغلاق",
+            cancel: "إلغاء",
+            escortTitle: "جزء من مسارك مغلق",
+            escortSub: "سيأتي متطوع ليرشدك من طريق آخر. ابقَ في مكانك.",
+            settings: "إمكانية الوصول",
+            textSize: "حجم النص",
+            contrast: "تباين عالٍ",
+            audio: "إرشادات صوتية",
+            haptic: "تنبيهات بالاهتزاز",
+            lang: "اللغة",
+            pace: "سرعة المشي",
+            paceN: "عادية",
+            paceS: "أبطأ",
+            legend:
+              "أنماط الاهتزاز. يسار: اهتزازتان قصيرتان. يمين: 3 قصيرة. مصعد أو سلم متحرك: اهتزازتان طويلتان. الوصول: اهتزازة طويلة.",
+            walk: "امشِ",
+            pause: "إيقاف",
+            next: "تخطَّ",
+            end: "إنهاء التوجيه",
+            audioShort: "صوت",
+            hapShort: "اهتزاز",
+            then: "ثم",
+            remaining: "متبقية",
+            home: "وجهة جديدة",
+            rerouted: "أُغلق جزء من مسارك للتو. متطوع في الطريق إليك.",
+            cam: "عرض كاميرا محاكى",
+            riding: "في المصعد البنفسجي",
+            goingDown: "النزول إلى المستوى B1",
+            none: "لا توجد نتائج. جرّب كلمة أخرى أو اضغط مساعدة.",
+            vib: "اهتزاز",
+            inM: "بعد حوالي {m} مترًا، ",
+            arrivedSay: "لقد وصلت إلى {dest}.",
+            a: {
+              straight: "تابع السير مباشرةً بعد {lm}",
+              left: "انعطف يسارًا عند {lm}",
+              right: "انعطف يمينًا عند {lm}",
+              elev: "استقل المصعد البنفسجي (الجناح C) إلى الطابق {f}",
+              down: "انزل إلى المستوى B1 بالسلم المتحرك أو المصعد",
+              arrive: "{dest} {side}",
+            },
+            sides: {
+              left: "على يسارك",
+              right: "على يمينك",
+              ahead: "أمامك مباشرةً",
+              end: "في نهاية الممر",
+              signs: "بالقرب منك. اتبع اللافتات",
+            },
+            lm: {
+              revolving: "الأبواب الدوارة",
+              gift: "متجر الهدايا",
+              aWing: "ممر الجناح A",
+              coffee: "كشك القهوة",
+              gElev: "المصعد الأزرق (الجناح G)",
+              cancer: "مركز السرطان",
+            },
+            mapL: {
+              entrance: "المدخل الرئيسي",
+              food: "ساحة الطعام",
+              er: "الطوارئ",
+            },
+            dest: {
+              img: "التصوير التشخيصي",
+              mri: "تسجيل الرنين المغناطيسي",
+              nuc: "الطب النووي و PET-CT",
+              breast: "مركز تقييم الثدي",
+              card: "وحدات أمراض القلب",
+              dial: "وحدة غسيل الكلى",
+              cancer: "مركز دورهام الإقليمي للسرطان",
+              pharm: "صيدلية PureHealth",
+            },
+            subs: {
+              img: "الجناح A · أشعة سينية، موجات فوق صوتية، مقطعية",
+              mri: "الجناح N · المستوى B1",
+              nuc: "الجناح N · الطابق الرئيسي",
+              breast: "الجناح N · المستوى B1 · تصوير الثدي",
+              card: "الجناح C · الطابق 7 · المصعد البنفسجي",
+              dial: "الجناح C · الطابق 8 · المصعد البنفسجي",
+              cancer: "باتجاه الجناح C من ممر الجناح A",
+              pharm: "الردهة الرئيسية",
+            },
+          },
+          zh: {
+            name: "中文",
+            code: "中文",
+            voice: "zh-CN",
+            here: "您在正门入口（Hospital Court）",
+            greet: "您要去哪里？",
+            search: "搜索诊所、服务或楼翼",
+            popular: "Lakeridge Health Oshawa",
+            scan: "扫描预约信",
+            scanSub: "将摄像头对准诊所名称",
+            scanning: "正在读取预约信…",
+            found: "已找到：影像诊断科（CT），下午3:30",
+            disclaimer:
+              "NavConnect 为 Lakeridge Health Oshawa 制作的概念原型，并非 Lakeridge Health 官方应用。路线依据 Lakeridge Health 公布的访客指引；地图依据 Lakeridge 院区平面图绘制，距离为估算值。",
+            route: "您的路线",
+            start: "开始导航",
+            steps: "步",
+            min: "分钟",
+            floor: "楼层",
+            dist: "约",
+            mainFl: "主楼层",
+            floorChange: "包含电梯或扶梯",
+            closedNote: "此路线部分区域目前关闭",
+            schematic: "主楼层 · 依据院区平面图",
+            arrived: "您已到达",
+            arrivedSub: "请在前台签到。如需帮助，请出示此屏幕。",
+            total: "用时",
+            roomL: "位置",
+            helpBtn: "求助",
+            helpTitle: "请志愿者帮忙",
+            helpSub: "请选择您需要的帮助。志愿者或工作人员会来找您。",
+            reasons: ["我迷路了", "我需要轮椅", "我需要翻译", "其他"],
+            shareLoc: "您的位置将与工作人员共享。",
+            send: "发送请求",
+            sent: "请求已发送",
+            sentSub: "请留在原地。平均等待约4分钟。",
+            assigned: "{name}正在赶来",
+            assignedSub: "对方知道您的位置和您使用的语言。",
+            close: "关闭",
+            cancel: "取消",
+            escortTitle: "您的路线部分关闭",
+            escortSub: "志愿者正赶来带您走另一条路。请留在原地。",
+            settings: "无障碍设置",
+            textSize: "文字大小",
+            contrast: "高对比度",
+            audio: "语音导航",
+            haptic: "振动提示",
+            lang: "语言",
+            pace: "步行速度",
+            paceN: "标准",
+            paceS: "较慢",
+            legend:
+              "振动模式。左转：2次短振。右转：3次短振。电梯或扶梯：2次长振。到达：1次长振。",
+            walk: "步行",
+            pause: "暂停",
+            next: "跳过",
+            end: "结束导航",
+            audioShort: "语音",
+            hapShort: "振动",
+            then: "然后",
+            remaining: "剩余",
+            home: "新的目的地",
+            rerouted: "您的路线部分刚刚关闭，志愿者正在赶来。",
+            cam: "模拟摄像头画面",
+            riding: "正在乘坐紫色电梯",
+            goingDown: "正在下到B1层",
+            none: "没有结果。请换个词，或点击求助。",
+            vib: "振动",
+            inM: "约{m}米后，",
+            arrivedSay: "您已到达{dest}。",
+            a: {
+              straight: "经过{lm}继续直行",
+              left: "在{lm}左转",
+              right: "在{lm}右转",
+              elev: "乘坐紫色电梯（C翼）到{f}楼",
+              down: "乘扶梯或电梯下到B1层",
+              arrive: "{dest}{side}",
+            },
+            sides: {
+              left: "在您的左侧",
+              right: "在您的右侧",
+              ahead: "就在正前方",
+              end: "在走廊尽头",
+              signs: "就在附近，请按指示牌前往",
+            },
+            lm: {
+              revolving: "旋转门",
+              gift: "礼品店",
+              aWing: "A翼走廊",
+              coffee: "咖啡亭",
+              gElev: "蓝色电梯（G翼）",
+              cancer: "癌症中心",
+            },
+            mapL: { entrance: "正门入口", food: "美食广场", er: "急诊" },
+            dest: {
+              img: "影像诊断科",
+              mri: "核磁共振登记处",
+              nuc: "核医学与PET-CT",
+              breast: "乳腺评估中心",
+              card: "心脏科病房",
+              dial: "透析室",
+              cancer: "达勒姆地区癌症中心",
+              pharm: "PureHealth药房",
+            },
+            subs: {
+              img: "A翼 · X光、超声、CT",
+              mri: "N翼 · B1层",
+              nuc: "N翼 · 主楼层",
+              breast: "N翼 · B1层 · 乳腺X光",
+              card: "C翼 · 7楼 · 紫色电梯",
+              dial: "C翼 · 8楼 · 紫色电梯",
+              cancer: "经A翼走廊前往C翼方向",
+              pharm: "主大堂",
+            },
+          },
+        };
+        const LANGS = ["en", "fr", "ar", "zh"];
+        const EXTRA = {
+          en: {
+            el: {
+              purple: "Purple Elevator (C Wing)",
+              grey: "Grey Elevator (A Wing)",
+            },
+            elev: "Take the {el} to Floor {f}",
+            riding: "Riding the {el}",
+            lm: {
+              hallEnd: "the end of the hallway",
+              food: "the Food Court",
+              yellow: "the Yellow Elevator (F Wing)",
+              gWing: "the G Wing hallway",
+              cWing: "the C Wing doors",
+            },
+            closedWhat: {
+              cElev: "The Purple Elevator",
+              aWing: "The A Wing hallway",
+            },
+            choiceTitle: "Part of your route is closed",
+            choiceSub:
+              "{what} is closed right now. How would you like to continue?",
+            optDetour: "Take a detour",
+            optDetourSub: "About {m} m longer. Keep going on your own.",
+            optVol: "Send a volunteer",
+            optVolSub: "Someone comes to you and walks you there.",
+            detourChip: "Detour around a closure",
+            detourNote:
+              "Demo detour. Real alternate routes still need confirming with Lakeridge.",
+            askVol: "Ask a volunteer instead",
+            noDetour:
+              "No backup route is confirmed for this closure yet, so a volunteer will guide you.",
+            closedChip: "Part of this route is closed",
+            closedBanner: "Part of your route just closed",
+            newRoute: "New route ready. Follow the updated directions.",
+          },
+          fr: {
+            el: {
+              purple: "l'ascenseur violet (aile C)",
+              grey: "l'ascenseur gris (aile A)",
+            },
+            elev: "Prenez {el} jusqu'au {f}e étage",
+            riding: "Dans {el}",
+            lm: {
+              hallEnd: "au bout du couloir",
+              food: "à l'aire de restauration",
+              yellow: "à l'ascenseur jaune (aile F)",
+              gWing: "au couloir de l'aile G",
+              cWing: "jusqu'à l'aile C",
+            },
+            closedWhat: {
+              cElev: "L'ascenseur violet",
+              aWing: "Le couloir de l'aile A",
+            },
+            choiceTitle: "Une partie de votre itinéraire est fermée",
+            choiceSub:
+              "{what} est fermé pour le moment. Comment voulez-vous continuer ?",
+            optDetour: "Prendre un détour",
+            optDetourSub: "Environ {m} m de plus. Continuez par vous-même.",
+            optVol: "Faire venir un bénévole",
+            optVolSub: "Une personne vient vous chercher et vous accompagne.",
+            detourChip: "Détour pour éviter une fermeture",
+            detourNote:
+              "Détour de démonstration. Les vrais itinéraires de rechange restent à confirmer avec Lakeridge.",
+            askVol: "Demander plutôt un bénévole",
+            noDetour:
+              "Aucun itinéraire de rechange n'est encore confirmé pour cette fermeture; un bénévole vous guidera.",
+            closedChip: "Une partie de cet itinéraire est fermée",
+            closedBanner: "Une partie de votre itinéraire vient de fermer",
+            newRoute:
+              "Nouvel itinéraire prêt. Suivez les nouvelles directions.",
+          },
+          ar: {
+            el: {
+              purple: "المصعد البنفسجي (الجناح C)",
+              grey: "المصعد الرمادي (الجناح A)",
+            },
+            elev: "استقل {el} إلى الطابق {f}",
+            riding: "في {el}",
+            lm: {
+              hallEnd: "نهاية الممر",
+              food: "ساحة الطعام",
+              yellow: "المصعد الأصفر (الجناح F)",
+              gWing: "ممر الجناح G",
+              cWing: "أبواب الجناح C",
+            },
+            closedWhat: { cElev: "المصعد البنفسجي", aWing: "ممر الجناح A" },
+            choiceTitle: "جزء من مسارك مغلق",
+            choiceSub: "{what} مغلق حاليًا. كيف تريد المتابعة؟",
+            optDetour: "اسلك طريقًا بديلًا",
+            optDetourSub: "أطول بحوالي {m} مترًا. تابع بمفردك.",
+            optVol: "أرسلوا متطوعًا",
+            optVolSub: "سيأتي شخص إليك ويرافقك إلى وجهتك.",
+            detourChip: "طريق بديل لتجنب منطقة مغلقة",
+            detourNote:
+              "طريق بديل تجريبي. يجب تأكيد المسارات البديلة الفعلية مع Lakeridge.",
+            askVol: "اطلب متطوعًا بدلًا من ذلك",
+            noDetour:
+              "لم يتم تأكيد طريق بديل لهذا الإغلاق بعد، لذا سيرشدك متطوع.",
+            closedChip: "جزء من هذا المسار مغلق",
+            closedBanner: "أُغلق جزء من مسارك للتو",
+            newRoute: "المسار الجديد جاهز. اتبع الإرشادات المحدثة.",
+          },
+          zh: {
+            el: { purple: "紫色电梯（C翼）", grey: "灰色电梯（A翼）" },
+            elev: "乘坐{el}到{f}楼",
+            riding: "正在乘坐{el}",
+            lm: {
+              hallEnd: "走廊尽头",
+              food: "美食广场",
+              yellow: "黄色电梯（F翼）",
+              gWing: "G翼走廊",
+              cWing: "C翼入口",
+            },
+            closedWhat: { cElev: "紫色电梯", aWing: "A翼走廊" },
+            choiceTitle: "您的路线部分关闭",
+            choiceSub: "{what}目前关闭。您想如何继续？",
+            optDetour: "绕行",
+            optDetourSub: "约多走{m}米，您可以自行前往。",
+            optVol: "派志愿者来",
+            optVolSub: "有人会来找您并陪您过去。",
+            detourChip: "绕行关闭区域",
+            detourNote: "演示用绕行路线，实际替代路线仍需与 Lakeridge 确认。",
+            askVol: "改为请志愿者",
+            noDetour: "此关闭区域暂无已确认的替代路线，志愿者将为您带路。",
+            closedChip: "此路线部分关闭",
+            closedBanner: "您的路线部分刚刚关闭",
+            newRoute: "新路线已就绪，请按更新后的指示前行。",
+          },
+        };
+        Object.entries(EXTRA).forEach(([l, x]) => {
+          const L = I[l];
+          Object.assign(L.lm, x.lm);
+          L.a.elev = x.elev;
+          const { lm, elev, ...rest } = x;
+          Object.assign(L, rest);
+        });
+
+        const LM_EN_PLAIN = {
+          start: "Main entrance (Hospital Court)",
+          revolving: "Main lobby, A Wing",
+          gift: "Main lobby, near the gift shop",
+          aWing: "A Wing hallway",
+          coffee: "A Wing hallway, coffee kiosk",
+          gElev: "A Wing hallway, Blue Elevator",
+          cancer: "Cancer centre, near the Purple Elevator",
+          hallEnd: "A Wing, end of the hallway",
+          food: "Food Court, A Wing",
+          yellow: "Yellow Elevator, F Wing",
+          gWing: "G Wing hallway",
+          cWing: "Floor 7/8, near C Wing",
+        };
+
+        /* ---------- Lakeridge Health Oshawa destinations (locations from lh.ca visitor directions) ---------- */
+        const DEST = {
+          img: { icon: "scan", line: "amber", loc: "A Wing" },
+          mri: { icon: "magnet", line: "green", loc: "N Wing · B1" },
+          nuc: { icon: "atom", line: "green", loc: "N Wing" },
+          breast: { icon: "scan", line: "green", loc: "N Wing · B1" },
+          card: { icon: "heart", line: "teal", loc: "C Wing · 7" },
+          dial: { icon: "drop", line: "teal", loc: "C Wing · 8" },
+          cancer: { icon: "ribbon", line: "red", loc: "Main floor" },
+          pharm: { icon: "pill", line: "blue", loc: "Main lobby" },
+        };
+        const ORDER = Object.keys(DEST);
+        const KW = {
+          img: "diagnostic x-ray xray ct ultrasound radiology imaging interventional imagerie",
+          mri: "mri magnetic irm",
+          nuc: "nuclear pet bone density",
+          breast: "mammogram mammography breast sein",
+          card: "heart cardiac cardiology coeur",
+          dial: "dialysis kidney renal rein",
+          cancer: "cancer oncology chemotherapy radiation mclaughlin",
+          pharm: "pharmacy prescription medication",
+        };
+        const E = [790, 458],
+          LB = [775, 505],
+          AH = [775, 645];
+        function baseRoute(id) {
+          switch (id) {
+            case "pharm":
+              return {
+                path: [E, LB, [740, 515]],
+                steps: [
+                  { m: 15, a: "straight", lm: "revolving" },
+                  { m: 15, a: "arrive", side: "signs" },
+                ],
+              };
+            case "img":
+              return {
+                path: [E, LB, AH, [600, 645], [455, 650]],
+                steps: [
+                  { m: 15, a: "straight", lm: "revolving" },
+                  { m: 55, a: "right", lm: "aWing" },
+                  { m: 45, a: "straight", lm: "coffee" },
+                  { m: 35, a: "straight", lm: "gElev" },
+                  { m: 25, a: "arrive", side: "end" },
+                ],
+              };
+            case "nuc":
+              return {
+                path: [E, [735, 470], [640, 420], [520, 395], [390, 395]],
+                steps: [
+                  { m: 15, a: "straight", lm: "revolving" },
+                  { m: 30, a: "straight", lm: "gift" },
+                  { m: 75, a: "arrive", side: "left" },
+                ],
+              };
+            case "mri":
+              return {
+                path: [E, LB, [790, 560]],
+                steps: [
+                  { m: 15, a: "straight", lm: "revolving" },
+                  { m: 25, a: "down", f: "B1" },
+                  { m: 40, a: "arrive", side: "signs", fl: "B1" },
+                ],
+              };
+            case "breast":
+              return {
+                path: [E, LB, [790, 560]],
+                steps: [
+                  { m: 15, a: "straight", lm: "revolving" },
+                  { m: 25, a: "down", f: "B1" },
+                  { m: 45, a: "arrive", side: "signs", fl: "B1" },
+                ],
+              };
+            case "cancer":
+              return {
+                path: [E, LB, AH, [860, 645], [880, 700]],
+                steps: [
+                  { m: 15, a: "straight", lm: "revolving" },
+                  { m: 55, a: "left", lm: "aWing" },
+                  { m: 20, a: "arrive", side: "ahead" },
+                ],
+              };
+            case "card":
+              return {
+                path: [E, LB, AH, [893, 645]],
+                steps: [
+                  { m: 15, a: "straight", lm: "revolving" },
+                  { m: 55, a: "left", lm: "aWing" },
+                  { m: 35, a: "straight", lm: "cancer" },
+                  { m: 20, a: "elev", el: "purple", f: 7 },
+                  { m: 15, a: "arrive", side: "left", fl: 7 },
+                ],
+              };
+            case "dial":
+              return {
+                path: [E, LB, AH, [893, 645]],
+                steps: [
+                  { m: 15, a: "straight", lm: "revolving" },
+                  { m: 55, a: "left", lm: "aWing" },
+                  { m: 35, a: "straight", lm: "cancer" },
+                  { m: 20, a: "elev", el: "purple", f: 8 },
+                  { m: 15, a: "arrive", side: "right", fl: 8 },
+                ],
+              };
+          }
+        }
+        function detourRoute(id, k) {
+          if (k === "cElev" && (id === "card" || id === "dial")) {
+            const f = id === "card" ? 7 : 8;
+            return {
+              detourFor: k,
+              path: [E, LB, AH, [843, 645]],
+              steps: [
+                { m: 15, a: "straight", lm: "revolving" },
+                { m: 55, a: "left", lm: "aWing" },
+                { m: 10, a: "elev", el: "grey", f },
+                { m: 60, a: "straight", lm: "cWing", fl: f },
+                {
+                  m: 15,
+                  a: "arrive",
+                  side: id === "card" ? "left" : "right",
+                  fl: f,
+                },
+              ],
+            };
+          }
+          if (k === "aWing" && id === "img")
+            return {
+              detourFor: k,
+              path: [
+                E,
+                [735, 480],
+                [640, 505],
+                [630, 600],
+                [560, 640],
+                [455, 650],
+              ],
+              steps: [
+                { m: 15, a: "straight", lm: "revolving" },
+                { m: 35, a: "right", lm: "food" },
+                { m: 60, a: "left", lm: "yellow" },
+                { m: 55, a: "right", lm: "gWing" },
+                { m: 40, a: "arrive", side: "ahead" },
+              ],
+            };
+          return null;
+        }
+        function getRoute(id, allowDetour = true) {
+          const k = closedFor(id);
+          return (allowDetour && k && detourRoute(id, k)) || baseRoute(id);
+        }
+        const CLOSURE_AFFECTS = { cElev: ["card", "dial"], aWing: ["img"] };
+        const closedFor = (id) =>
+          Object.keys(state.closures).find(
+            (k) => state.closures[k] && CLOSURE_AFFECTS[k].includes(id),
+          );
+        function stats(r) {
+          const d = r.steps.reduce((a, s) => a + s.m, 0);
+          const v = r.steps.some((s) => s.a === "elev")
+            ? 60
+            : r.steps.some((s) => s.a === "down")
+              ? 40
+              : 0;
+          const sp = state.pace === "s" ? 0.75 : 1.1;
+          return { d, min: Math.max(1, Math.round((d / sp + v) / 60)) };
+        }
+        const SICON = {
+          straight: "up",
+          left: "left",
+          right: "right",
+          elev: "elev",
+          down: "down",
+          arrive: "pin",
+        };
+
+        /* ---------- state ---------- */
+        const state = {
+          lang: "en",
+          screen: "home",
+          dest: null,
+          audio: true,
+          haptic: true,
+          scale: 1,
+          hc: false,
+          pace: "n",
+          closures: { cElev: false, aWing: false },
+          history: [],
+        };
+        try {
+          const p = JSON.parse(
+            localStorage.getItem("navconnect-prefs") || "null",
+          );
+          if (p) {
+            ["lang", "audio", "haptic", "scale", "hc", "pace"].forEach((k) => {
+              if (k in p) state[k] = p[k];
+            });
+          }
+        } catch (e) {}
+        function savePrefs() {
+          try {
+            localStorage.setItem(
+              "navconnect-prefs",
+              JSON.stringify({
+                lang: state.lang,
+                audio: state.audio,
+                haptic: state.haptic,
+                scale: state.scale,
+                hc: state.hc,
+                pace: state.pace,
+              }),
+            );
+          } catch (e) {}
+        }
+        const T = () => I[state.lang];
+        const fill = (s, o) =>
+          s.replace(/\{(\w+)\}/g, (_, k) => (o[k] != null ? o[k] : ""));
+        function instr(s, dest, lang = state.lang) {
+          const L = I[lang];
+          return fill(L.a[s.a], {
+            lm: L.lm[s.lm] || "",
+            el: (L.el || {})[s.el] || "",
+            f: s.f || "",
+            dest: L.dest[dest],
+            side: L.sides[s.side] || "",
+          });
+        }
+        const sub = (id) => T().subs[id];
+        const flLabel = (f) =>
+          f === "main" ? T().mainFl : `${T().floor} ${f}`;
+
+        /* ---------- screens ---------- */
+        function go(name, push = true) {
+          if (push && state.screen !== name) state.history.push(state.screen);
+          state.screen = name;
+          ["home", "route", "nav", "arrive", "settings"].forEach(
+            (s) => ($("#s-" + s).hidden = s !== name),
+          );
+          $("#sb").classList.toggle("on-ar", name === "nav");
+          render();
+        }
+        function back() {
+          const p = state.history.pop() || "home";
+          go(p, false);
+        }
+
+        function applyStatic() {
+          const t = T(),
+            sc = $("#screens");
+          sc.setAttribute("dir", t.rtl ? "rtl" : "ltr");
+          sc.setAttribute("lang", state.lang);
+          $$("#phone [data-t]").forEach((el) => {
+            const v = t[el.dataset.t];
+            if (typeof v === "string") el.textContent = v;
+          });
+          $$("#phone [data-ph]").forEach(
+            (el) => (el.placeholder = t[el.dataset.ph]),
+          );
+          $$("#phone [data-aria]").forEach((el) => {
+            el.setAttribute(
+              "aria-label",
+              t[el.dataset.aria] || el.dataset.aria,
+            );
+          });
+          $("#btn-lang").innerHTML = ic("globe", 18) + `<span>${t.code}</span>`;
+          $("#btn-settings").innerHTML = ic("settings");
+          $$(".js-back").forEach(
+            (b) => (b.innerHTML = ic(t.rtl ? "fwd" : "back")),
+          );
+          const ph = $("#phone");
+          ph.style.setProperty("--scale", state.scale);
+          ph.classList.toggle("hc", state.hc);
+        }
+        function render() {
+          applyStatic();
+          const s = state.screen;
+          if (s === "home") renderGrid();
+          if (s === "route") renderRoute();
+          if (s === "nav" && nav) setStepUI();
+          if (s === "settings") renderSettings();
+        }
+        function renderGrid() {
+          const q = $("#q").value.trim().toLowerCase(),
+            t = T();
+          const list = ORDER.filter(
+            (id) =>
+              !q ||
+              (
+                t.dest[id] +
+                " " +
+                I.en.dest[id] +
+                " " +
+                I.en.subs[id] +
+                " " +
+                KW[id]
+              )
+                .toLowerCase()
+                .includes(q),
+          );
+          $("#dest-grid").innerHTML =
+            list
+              .map(
+                (id) =>
+                  `<button class="dest" data-id="${id}" style="--lc:var(--l-${DEST[id].line})"><span class="d-ic">${ic(DEST[id].icon, 24)}</span><span class="d-name">${t.dest[id]}</span><span class="d-sub">${sub(id)}</span></button>`,
+              )
+              .join("") || `<p class="empty">${t.none}</p>`;
+        }
+        const WINGS = [
+          [
+            "N",
+            "#3FBF2E",
+            [
+              [288, 282],
+              [300, 268],
+              [692, 268],
+              [692, 405],
+              [680, 418],
+              [522, 418],
+              [522, 515],
+              [288, 515],
+            ],
+            [430, 370],
+          ],
+          [
+            "F",
+            "#F2E36B",
+            [
+              [522, 418],
+              [680, 418],
+              [662, 468],
+              [662, 612],
+              [628, 630],
+              [522, 620],
+            ],
+            [570, 575],
+          ],
+          [
+            "A",
+            "#F28A1A",
+            [
+              [680, 418],
+              [712, 400],
+              [742, 442],
+              [790, 455],
+              [815, 420],
+              [815, 612],
+              [850, 628],
+              [855, 785],
+              [645, 785],
+              [628, 630],
+              [662, 612],
+              [662, 468],
+            ],
+            [748, 700],
+          ],
+          [
+            "D",
+            "#8A8D90",
+            [
+              [815, 418],
+              [925, 418],
+              [925, 612],
+              [815, 612],
+            ],
+            [868, 548],
+          ],
+          [
+            "G",
+            "#1EB8EE",
+            [
+              [288, 515],
+              [522, 515],
+              [522, 620],
+              [628, 630],
+              [645, 785],
+              [288, 775],
+            ],
+            [428, 697],
+          ],
+          [
+            "C",
+            "#4A2BE0",
+            [
+              [855, 615],
+              [945, 615],
+              [945, 598],
+              [1135, 598],
+              [1135, 622],
+              [1200, 622],
+              [1220, 700],
+              [1205, 785],
+              [935, 790],
+              [900, 808],
+              [885, 790],
+              [855, 785],
+            ],
+            [1015, 710],
+          ],
+          [
+            "U",
+            "#E8221F",
+            [
+              [1150, 553],
+              [1185, 553],
+              [1185, 503],
+              [1240, 503],
+              [1240, 622],
+              [1135, 622],
+              [1135, 598],
+              [1150, 598],
+            ],
+            [1205, 565],
+          ],
+        ];
+        const ELEVS = [
+          ["Silver", "#A7AEB5", 440, 448],
+          ["Green", "#2E9E3E", 633, 395],
+          ["Yellow", "#E2C93B", 643, 595],
+          ["Orange", "#F28A1A", 767, 567],
+          ["Grey", "#8A8D90", 843, 636],
+          ["Purple", "#5B3BE8", 893, 645],
+          ["Blue", "#1EB8EE", 588, 645],
+        ];
+        function mapSVG(r, id) {
+          const lc = `var(--l-${DEST[id].line})`,
+            c = state.closures,
+            M = T().mapL;
+          const end = r.path[r.path.length - 1],
+            pts = r.path.map((p) => p.join(",")).join(" ");
+          const X = (x, y, sz = 26) =>
+            `<g transform="translate(${x} ${y})"><circle r="${sz}" fill="var(--crit)" stroke="var(--surface)" stroke-width="5"/><path d="M-${sz * 0.4} -${sz * 0.4}L${sz * 0.4} ${sz * 0.4}M${sz * 0.4} -${sz * 0.4}L-${sz * 0.4} ${sz * 0.4}" stroke="#fff" stroke-width="7" stroke-linecap="round"/></g>`;
+          let s = `<svg viewBox="270 222 975 600" dir="ltr" role="img" aria-label="Main floor map of Lakeridge Health Oshawa, traced from the hospital site map">`;
+          s += `<text x="990" y="330" font-size="30" fill="var(--muted)" font-weight="700" text-anchor="middle" style="font-family:var(--f-body)">Hospital Court</text>`;
+          s += `<text x="1060" y="815" font-size="30" fill="var(--muted)" font-weight="700" text-anchor="middle" style="font-family:var(--f-body)">Parkwood Court</text>`;
+          s += WINGS.map(
+            ([l, col, poly]) =>
+              `<polygon points="${poly.map((p) => p.join(",")).join(" ")}" fill="${col}" fill-opacity=".28" stroke="${col}" stroke-opacity=".75" stroke-width="3" stroke-linejoin="round"/>`,
+          ).join("");
+          s += WINGS.map(
+            ([l, col, poly, [x, y]]) =>
+              `<g transform="translate(${x} ${y})"><circle r="30" fill="var(--surface)" stroke="${col}" stroke-width="4"/><text y="13" text-anchor="middle" font-size="38" font-weight="700" fill="var(--ink)" style="font-family:var(--f-display)">${l}</text></g>`,
+          ).join("");
+          s += `<text x="742" y="532" font-size="22" fill="var(--muted)" text-anchor="middle" style="font-family:var(--f-body)">${M.food}</text>`;
+          s += `<g transform="translate(470 250)"><rect x="-70" y="-20" width="140" height="34" rx="8" fill="var(--crit-soft)"/><text y="5" text-anchor="middle" font-size="22" font-weight="700" fill="var(--crit)" style="font-family:var(--f-body)">${M.er}</text></g>`;
+          s += ELEVS.map(
+            ([n, col, x, y]) =>
+              `<rect x="${x - 11}" y="${y - 11}" width="22" height="22" rx="4" fill="${col}" stroke="var(--surface)" stroke-width="4"><title>${n} Elevator</title></rect>`,
+          ).join("");
+          if (c.aWing)
+            s +=
+              `<line x1="760" y1="645" x2="610" y2="645" stroke="var(--crit)" stroke-width="12" stroke-dasharray="16 14"/>` +
+              X(690, 645);
+          if (c.cElev) s += X(893, 645, 30);
+          s += `<polyline points="${pts}" fill="none" stroke="var(--surface)" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>`;
+          s += `<polyline points="${pts}" fill="none" stroke="${lc}" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>`;
+          s += `<polyline points="${pts}" fill="none" stroke="var(--surface)" stroke-width="5" stroke-dasharray="4 22" stroke-linecap="round"><animate attributeName="stroke-dashoffset" from="52" to="0" dur="1s" repeatCount="indefinite"/></polyline>`;
+          s += `<circle cx="${E[0]}" cy="${E[1]}" r="20" fill="var(--accent)" stroke="var(--surface)" stroke-width="7"/><circle cx="${E[0]}" cy="${E[1]}" r="20" fill="none" stroke="var(--accent)" stroke-width="4" opacity=".5"><animate attributeName="r" from="20" to="44" dur="1.6s" repeatCount="indefinite"/><animate attributeName="opacity" from=".6" to="0" dur="1.6s" repeatCount="indefinite"/></circle>`;
+          s += `<text x="${E[0] + 30}" y="${E[1] - 28}" font-size="24" font-weight="700" fill="var(--accent)" style="font-family:var(--f-body)">${M.entrance}</text>`;
+          s += `<g transform="translate(${end[0]} ${end[1] - 14}) scale(2.4)"><path d="M0 6c-7-7-11-11-11-17a11 11 0 0 1 22 0c0 6-4 10-11 17z" fill="${lc}" stroke="var(--surface)" stroke-width="2.5"/><circle cy="-11" r="4" fill="var(--surface)"/></g>`;
+          return s + `</svg>`;
+        }
+        function renderRoute() {
+          const id = state.dest,
+            t = T(),
+            r = getRoute(id),
+            st = stats(r),
+            d = DEST[id];
+          const fc = r.steps.some((s) => s.a === "elev" || s.a === "down"),
+            closed = closedFor(id),
+            det = r.detourFor;
+          let lastFl = "main";
+          const stepsHtml = r.steps
+            .map((s) => {
+              const fl = s.fl || "main";
+              const hdr =
+                fl !== lastFl
+                  ? `<span class="s-floor">${flLabel(fl)}</span>`
+                  : "";
+              lastFl = fl;
+              return `<li><span class="s-ic">${ic(SICON[s.a], 20)}</span><span class="s-t">${hdr}${instr(s, id)}</span><span class="s-m">~${s.m} m</span></li>`;
+            })
+            .join("");
+          $("#route-body").style.setProperty("--lc", `var(--l-${d.line})`);
+          $("#route-body").innerHTML = `
+  <div class="dest-head"><div class="big-ic">${ic(d.icon, 28)}</div><div><h3>${t.dest[id]}</h3><p>${sub(id)}</p></div></div>
+  <div class="map"><span class="map-cap">${t.schematic}</span>${mapSVG(r, id)}<div class="elev-leg">${ELEVS.map(([n, col]) => `<span><i style="background:${col}"></i>${n}</span>`).join("")}</div></div>
+  <div class="stats"><div class="stat"><b>~${st.d} m</b><span>${t.dist}</span></div><div class="stat"><b>${st.min}</b><span>${t.min}</span></div><div class="stat"><b>${r.steps.length}</b><span>${t.steps}</span></div></div>
+  ${fc || closed ? `<div class="chips">${fc ? `<span class="chip">${ic("elev", 14)}${t.floorChange}</span>` : ""}${closed ? `<span class="chip warn">${ic("alert", 14)}${det ? t.detourChip : t.closedChip}</span>` : ""}</div>` : ""}
+  ${closed ? `<p class="fine">${det ? t.detourNote : t.noDetour}</p><button class="btn btn-ghost" id="btn-askvol">${ic("help")}${t.askVol}</button>` : ""}
+  <ol class="steps">${stepsHtml}</ol>`;
+          const av = $("#btn-askvol");
+          if (av) av.onclick = () => sendReq({ reason: -1, escort: closed });
+        }
+        function renderSettings() {
+          $("#seg-lang").innerHTML = LANGS.map(
+            (l) =>
+              `<button data-v="${l}" aria-pressed="${state.lang === l}" lang="${l}">${I[l].name}</button>`,
+          ).join("");
+          $$("#seg-size button").forEach((b) =>
+            b.setAttribute("aria-pressed", +b.dataset.v === state.scale),
+          );
+          $$("#seg-pace button").forEach((b) =>
+            b.setAttribute("aria-pressed", b.dataset.v === state.pace),
+          );
+          $("#sw-hc").setAttribute("aria-checked", state.hc);
+          $("#sw-audio").setAttribute("aria-checked", state.audio);
+          $("#sw-hap").setAttribute("aria-checked", state.haptic);
+        }
+
+        /* ---------- speech + haptics ---------- */
+        let speakingTimer;
+        function speak(text) {
+          if (!state.audio || !("speechSynthesis" in window)) return;
+          try {
+            speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = T().voice;
+            const v = speechSynthesis
+              .getVoices()
+              .find(
+                (v) => v.lang && v.lang.toLowerCase().startsWith(state.lang),
+              );
+            if (v) u.voice = v;
+            u.rate = state.pace === "s" ? 0.9 : 1;
+            const b = $("#c-audio");
+            b.classList.add("speaking");
+            u.onend = u.onerror = () => b.classList.remove("speaking");
+            clearTimeout(speakingTimer);
+            speakingTimer = setTimeout(
+              () => b.classList.remove("speaking"),
+              6000,
+            );
+            speechSynthesis.speak(u);
+          } catch (e) {}
+        }
+        const HAP = {
+          left: { p: [140, 90, 140], d: "● ●", n: 2 },
+          right: { p: [140, 90, 140, 90, 140], d: "● ● ●", n: 3 },
+          elev: { p: [400, 150, 400], d: "━ ━", n: 2 },
+          down: { p: [400, 150, 400], d: "━ ━", n: 2 },
+          arrive: { p: [700], d: "━━━", n: 1 },
+          reroute: { p: [80, 60, 80, 60, 80, 60, 80], d: "● ● ● ●", n: 4 },
+        };
+        let hapTimer;
+        function haptic(kind) {
+          if (!state.haptic || !HAP[kind]) return;
+          const h = HAP[kind];
+          try {
+            navigator.vibrate && navigator.vibrate(h.p);
+          } catch (e) {}
+          const ph = $("#phone");
+          let i = 0;
+          (function pulse() {
+            if (i++ >= h.n) return;
+            ph.classList.remove("buzz");
+            void ph.offsetWidth;
+            ph.classList.add("buzz");
+            setTimeout(pulse, h.p[0] > 300 ? 420 : 220);
+          })();
+          const toast = $("#hap");
+          toast.innerHTML =
+            ic("vibrate", 16) +
+            `<span>${T().vib}</span><span style="letter-spacing:.15em">${h.d}</span>`;
+          toast.hidden = false;
+          clearTimeout(hapTimer);
+          hapTimer = setTimeout(() => (toast.hidden = true), 1800);
+        }
+
+        /* ---------- AR navigation ---------- */
+        let nav = null,
+          tick = null;
+        function startNav() {
+          const r = getRoute(state.dest);
+          nav = {
+            route: r,
+            i: 0,
+            left: r.steps[0].m,
+            walking: false,
+            floor: "main",
+            riding: false,
+          };
+          go("nav");
+          console_.activeDelta(1);
+          clearInterval(tick);
+          tick = setInterval(step, 100);
+          setTimeout(() => announce(), 250);
+        }
+        function curLm() {
+          if (!nav) return "start";
+          const s = nav.route.steps[nav.i];
+          return (
+            s.lm ||
+            (nav.i > 0 ? nav.route.steps[nav.i - 1].lm : "start") ||
+            "start"
+          );
+        }
+        function announce() {
+          if (!nav) return;
+          const s = nav.route.steps[nav.i];
+          speak(
+            (s.a === "arrive"
+              ? ""
+              : fill(T().inM, { m: Math.ceil(nav.left) })) +
+              instr(s, state.dest),
+          );
+        }
+        function setStepUI() {
+          if (!nav) return;
+          const t = T(),
+            r = nav.route,
+            s = r.steps[nav.i],
+            n = r.steps[nav.i + 1],
+            d = DEST[state.dest];
+          $("#s-nav").style.setProperty("--lc", `var(--l-${d.line})`);
+          $("#nv-ic").innerHTML = ic(SICON[s.a], 40, 2.4);
+          $("#nv-text").textContent = instr(s, state.dest);
+          $("#nv-then").hidden = !n;
+          if (n) $("#nv-then-t").textContent = instr(n, state.dest);
+          $("#nv-floor").textContent = flLabel(nav.floor);
+          $("#an-turn-ic").innerHTML = ic(
+            s.a === "left" ? "left" : "right",
+            54,
+            2.6,
+          );
+          $("#an-elev-ic").innerHTML = ic(
+            s.a === "down" ? "down" : "elev",
+            50,
+            2.4,
+          );
+          $("#an-elev-l").textContent =
+            s.a === "elev" || s.a === "down" ? instr(s, state.dest) : "";
+          $("#an-pin-l").textContent = t.dest[state.dest];
+          $("#c-audio").setAttribute("aria-pressed", state.audio);
+          $("#c-hap").setAttribute("aria-pressed", state.haptic);
+          setWalkBtn();
+          tickUI();
+        }
+        function setWalkBtn() {
+          const t = T();
+          $("#c-walk-ic").innerHTML = ic(nav && nav.walking ? "pause" : "play");
+          $("#c-walk-t").textContent = nav && nav.walking ? t.pause : t.walk;
+          $("#ar").classList.toggle(
+            "walking",
+            !!(nav && nav.walking && !nav.riding),
+          );
+        }
+        function tickUI() {
+          const r = nav.route,
+            s = r.steps[nav.i],
+            tot = r.steps.reduce((a, x) => a + x.m, 0);
+          const done =
+            r.steps.slice(0, nav.i).reduce((a, x) => a + x.m, 0) +
+            (s.m - nav.left);
+          $("#nv-dist").textContent =
+            "~" + Math.max(0, Math.ceil(nav.left)) + " m";
+          $("#nv-prog").style.width = ((done / tot) * 100).toFixed(1) + "%";
+          const rem = Math.max(0, Math.round(tot - done));
+          $("#nv-left").textContent = "~" + rem + " m";
+          const sp = state.pace === "s" ? 0.75 : 1.1;
+          const vert =
+            nav.floor === "main" &&
+            r.steps.slice(nav.i).some((x) => x.a === "elev" || x.a === "down")
+              ? 50
+              : 0;
+          $("#nv-min").textContent = Math.max(
+            1,
+            Math.round((rem / sp + vert) / 60),
+          );
+          $("#an-turn").hidden = !(
+            (s.a === "left" || s.a === "right") &&
+            nav.left < 14
+          );
+          $("#an-elev").hidden = !(
+            (s.a === "elev" || s.a === "down") &&
+            nav.left < 16
+          );
+          $("#an-pin").hidden = !(s.a === "arrive" && nav.left < 28);
+        }
+        function step() {
+          if (!nav || !nav.walking || nav.riding || state.screen !== "nav")
+            return;
+          nav.left -= (state.pace === "s" ? 3.2 : 4.6) * 0.1;
+          if (nav.left <= 0) {
+            nav.left = 0;
+            maneuver();
+          } else tickUI();
+        }
+        function maneuver() {
+          const s = nav.route.steps[nav.i];
+          if (s.a === "arrive") {
+            haptic("arrive");
+            finish();
+            return;
+          }
+          haptic(s.a);
+          if (s.a === "left" || s.a === "right") {
+            const sc = $("#scene");
+            sc.classList.add("pan-" + s.a);
+            setTimeout(() => sc.classList.remove("pan-" + s.a), 650);
+          }
+          if (s.a === "elev" || s.a === "down") {
+            nav.riding = true;
+            setWalkBtn();
+            const ov = $("#riding");
+            $("#ride-fl").textContent = s.a === "elev" ? "1" : "G";
+            $("#ride-t").textContent =
+              s.a === "elev"
+                ? fill(T().riding, { el: T().el[s.el] })
+                : T().goingDown;
+            ov.hidden = false;
+            setTimeout(() => {
+              $("#ride-fl").textContent = String(s.f);
+            }, 1100);
+            setTimeout(() => {
+              ov.hidden = true;
+              nav.floor = s.f;
+              nav.riding = false;
+              advance();
+            }, 2300);
+            return;
+          }
+          advance();
+        }
+        function advance() {
+          nav.i++;
+          nav.left = nav.route.steps[nav.i].m;
+          setStepUI();
+          announce();
+        }
+        function finish() {
+          const secs = Math.round(
+            stats(nav.route).min * 60 * (0.85 + Math.random() * 0.3),
+          );
+          $("#ar-dest").textContent = T().dest[state.dest];
+          $("#ar-room").textContent = DEST[state.dest].loc;
+          $("#ar-time").textContent =
+            `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")}`;
+          speak(fill(T().arrivedSay, { dest: T().dest[state.dest] }));
+          console_.arrived(state.dest, secs);
+          clearInterval(tick);
+          nav = null;
+          console_.activeDelta(-1);
+          state.history = [];
+          go("arrive", false);
+        }
+        function endNav() {
+          clearInterval(tick);
+          if (nav) console_.activeDelta(-1);
+          nav = null;
+          try {
+            speechSynthesis.cancel();
+          } catch (e) {}
+          state.history = [];
+          go("home", false);
+        }
+
+        /* ---------- help + escorts ---------- */
+        let helpReq = null,
+          helpReason = 0,
+          autoAssign;
+        function openHelp() {
+          const t = T(),
+            sh = $("#help-sheet");
+          $("#help").hidden = false;
+          if (helpReq && helpReq.status !== "done") {
+            renderHelpWait();
+            return;
+          }
+          sh.innerHTML = `<h3>${t.helpTitle}</h3><p>${t.helpSub}</p><div class="reasons">${t.reasons.map((r, i) => `<button class="reason" data-i="${i}" aria-pressed="${i === helpReason}">${r}</button>`).join("")}</div>
+  <p style="display:flex;gap:6px;align-items:center">${ic("pin", 16)}${t.shareLoc}</p>
+  <div style="display:flex;gap:10px"><button class="btn btn-ghost" id="h-cancel">${t.cancel}</button><button class="btn btn-primary" id="h-send">${t.send}</button></div>`;
+          sh.querySelectorAll(".reason").forEach(
+            (b) =>
+              (b.onclick = () => {
+                helpReason = +b.dataset.i;
+                sh.querySelectorAll(".reason").forEach((x) =>
+                  x.setAttribute("aria-pressed", x === b),
+                );
+              }),
+          );
+          $("#h-cancel").onclick = closeHelp;
+          $("#h-send").onclick = () => sendReq({ reason: helpReason });
+          sh.querySelector(".reason").focus();
+        }
+        function sendReq(o) {
+          helpReq = {
+            id: "live" + Date.now(),
+            reason: o.reason,
+            escort: o.escort,
+            lang: state.lang,
+            loc: LM_EN_PLAIN[curLm()] || LM_EN_PLAIN.start,
+            t: Date.now(),
+            status: "open",
+            live: true,
+          };
+          console_.addReq(helpReq);
+          $("#help").hidden = false;
+          renderHelpWait();
+          clearTimeout(autoAssign);
+          autoAssign = setTimeout(() => {
+            if (helpReq && helpReq.status === "open")
+              console_.assign(helpReq.id);
+          }, 10000);
+        }
+        function renderHelpWait() {
+          const t = T(),
+            sh = $("#help-sheet");
+          if (helpReq.status === "open") {
+            sh.innerHTML = `<div class="wait"><div class="spinner"></div><h3>${helpReq.escort ? t.escortTitle : t.sent}</h3><p>${helpReq.escort ? t.escortSub : t.sentSub}</p></div><button class="btn btn-ghost" id="h-close">${t.close}</button>`;
+          } else {
+            sh.innerHTML = `<div class="wait"><div class="vol-ok">${ic("check", 34, 2.6)}</div><h3>${fill(t.assigned, { name: helpReq.vol })}</h3><p>${t.assignedSub}</p></div><button class="btn btn-primary" id="h-close">${t.close}</button>`;
+          }
+          $("#h-close").onclick = () => {
+            if (helpReq.status === "assigned") helpReq.status = "done";
+            closeHelp();
+          };
+        }
+        function closeHelp() {
+          $("#help").hidden = true;
+        }
+        function onAssigned(req) {
+          if (helpReq && req.id === helpReq.id) {
+            helpReq.status = "assigned";
+            helpReq.vol = req.vol;
+            haptic("arrive");
+            $("#help").hidden = false;
+            renderHelpWait();
+            speak(fill(T().assigned, { name: req.vol }));
+          }
+        }
+        function banner(text) {
+          const b = $("#reroute");
+          $("#reroute-t").textContent = text;
+          b.hidden = false;
+          clearTimeout(banner.t);
+          banner.t = setTimeout(() => (b.hidden = true), 5000);
+        }
+        function closureHit(k) {
+          if (!nav || nav.route.detourFor === k) return;
+          nav.walking = false;
+          setWalkBtn();
+          haptic("reroute");
+          const t = T(),
+            alt = detourRoute(state.dest, k);
+          banner(t.closedBanner);
+          speak(
+            t.choiceTitle + ". " + fill(t.choiceSub, { what: t.closedWhat[k] }),
+          );
+          const extra = alt
+            ? Math.max(5, stats(alt).d - stats(nav.route).d)
+            : 0;
+          $("#help").hidden = false;
+          $("#help-sheet").innerHTML =
+            `<h3>${t.choiceTitle}</h3><p>${fill(t.choiceSub, { what: t.closedWhat[k] })}</p>
+  <div class="reasons">
+   ${alt ? `<button class="opt" id="opt-detour"><span class="oi">${ic("right", 22)}</span><span><strong>${t.optDetour}</strong><small>${fill(t.optDetourSub, { m: extra })}</small></span></button>` : ""}
+   <button class="opt" id="opt-vol"><span class="oi warn">${ic("help", 22)}</span><span><strong>${t.optVol}</strong><small>${t.optVolSub}</small></span></button>
+  </div><p class="fine">${alt ? t.detourNote : t.noDetour}</p>`;
+          $(alt ? "#opt-detour" : "#opt-vol").focus();
+          if (alt)
+            $("#opt-detour").onclick = () => {
+              closeHelp();
+              nav.route = alt;
+              nav.i = 0;
+              nav.left = alt.steps[0].m;
+              nav.floor = "main";
+              banner(t.newRoute);
+              haptic("reroute");
+              setStepUI();
+              speak(
+                t.newRoute +
+                  " " +
+                  fill(t.inM, { m: Math.ceil(nav.left) }) +
+                  instr(alt.steps[0], state.dest),
+              );
+              console_.log(
+                `Demo phone chose a detour around the ${{ cElev: "Purple Elevator", aWing: "A Wing hallway" }[k]} to reach ${I.en.dest[state.dest]}${k === "cElev" ? " (via the Grey Elevator)" : " (via the Food Court and F Wing)"}.`,
+              );
+            };
+          $("#opt-vol").onclick = () => sendReq({ reason: -1, escort: k });
+        }
+
+        /* ---------- scan letter ---------- */
+        function doScan() {
+          const ov = $("#scan");
+          $("#scan-t").textContent = T().scanning;
+          ov.hidden = false;
+          setTimeout(() => {
+            $("#scan-t").textContent = T().found;
+            haptic("arrive");
+          }, 1700);
+          setTimeout(() => {
+            ov.hidden = true;
+            state.dest = "img";
+            go("route");
+          }, 2900);
+        }
+
+        /* ---------- closures ---------- */
+        function setClosure(k, v) {
+          state.closures[k] = v;
+          if (state.screen === "route") renderRoute();
+          const hit =
+            v &&
+            nav &&
+            CLOSURE_AFFECTS[k].includes(state.dest) &&
+            nav.route.detourFor !== k;
+          if (hit) closureHit(k);
+          return hit;
+        }
+
+        /* ---------- staff console ---------- */
+        const console_ = (function () {
+          const VOLS = ["Fatima K.", "Mei L.", "Joseph A.", "Priya S."];
+          let vi = 0;
+          const now = Date.now();
+          const CL_NAME = {
+            cElev: "Purple Elevator (C Wing)",
+            aWing: "A Wing hallway",
+          };
+          const reqs = [
+            {
+              id: "r1",
+              text: "Needs a wheelchair",
+              langCode: "EN",
+              loc: "Main lobby",
+              t: now - 2 * 60000,
+              status: "open",
+            },
+            {
+              id: "r2",
+              text: "Lost, looking for MRI",
+              langCode: "PA",
+              loc: "A Wing hallway, Blue Elevator",
+              t: now - 9 * 60000,
+              status: "assigned",
+              vol: "Daniel O.",
+            },
+          ];
+          let active = 23,
+            arrivals = 412;
+          const top = { img: 96, dial: 61, cancer: 58, mri: 44, card: 37 };
+          const fmt = (d) =>
+            new Date(d).toLocaleTimeString([], {
+              hour: "numeric",
+              minute: "2-digit",
+            });
+          const ago = (t) => {
+            const m = Math.round((Date.now() - t) / 60000);
+            return m < 1 ? "just now" : m + " min ago";
+          };
+          const feed = [
+            {
+              t: now - 22 * 60000,
+              x: "Daniel O. assigned to a visitor at the Blue Elevator (Punjabi speaker).",
+            },
+            {
+              t: now - 6 * 60000,
+              x: "14 visitors navigated to Diagnostic Imaging in the last hour.",
+            },
+          ];
+          function renderReqs() {
+            const open = reqs.filter((r) => r.status === "open").length;
+            $("#req-cnt").textContent = open + " open";
+            $("#t-help").textContent = open;
+            $("#reqs").innerHTML = [...reqs]
+              .sort((a, b) => b.t - a.t)
+              .map(
+                (r) => `<div class="req ${r.status} ${r.live ? "live" : ""}">
+   <div class="req-main"><strong>${r.text}</strong>
+   <small>${r.loc} · <span class="lang-tag">${r.langCode}</span> · ${ago(r.t)} ${r.live ? '<span class="live-tag">● from demo phone</span>' : ""}</small></div>
+   ${r.status === "open" ? `<button class="c-btn" data-assign="${r.id}">Assign volunteer</button>` : `<span class="status">${r.vol} on the way</span>`}</div>`,
+              )
+              .join("");
+          }
+          function renderTop() {
+            const max = Math.max(...Object.values(top));
+            $("#bars").innerHTML = Object.entries(top)
+              .sort((a, b) => b[1] - a[1])
+              .map(
+                ([k, v]) =>
+                  `<div class="bar" style="--lc:var(--l-${DEST[k].line})"><span>${I.en.dest[k]}</span><span class="tr"><i style="width:${((v / max) * 100).toFixed(1)}%"></i></span><b>${v}</b></div>`,
+              )
+              .join("");
+          }
+          function renderStack() {
+            const L = [
+              ["English", 71, "--l-blue"],
+              ["French", 8, "--l-teal"],
+              ["Arabic", 7, "--l-amber"],
+              ["Mandarin", 5, "--l-green"],
+              ["Punjabi", 4, "--l-red"],
+              ["Other", 5, "--muted"],
+            ];
+            $("#stack").innerHTML = L.map(
+              ([n, v, c]) =>
+                `<i style="width:${v}%;background:var(${c})" title="${n} ${v}%"></i>`,
+            ).join("");
+            $("#stack-leg").innerHTML = L.map(
+              ([n, v, c]) =>
+                `<span><i style="background:var(${c})"></i>${n} ${v}%</span>`,
+            ).join("");
+          }
+          function renderFeed(flash) {
+            $("#feed").innerHTML = [...feed]
+              .sort((a, b) => b.t - a.t)
+              .map(
+                (f, i) =>
+                  `<li class="${flash && i === 0 ? "new" : ""}"><time>${fmt(f.t)}</time><span>${f.x}</span></li>`,
+              )
+              .join("");
+          }
+          function log(x) {
+            feed.push({ t: Date.now(), x });
+            renderFeed(true);
+          }
+          function assign(id) {
+            const r = reqs.find((x) => x.id === id);
+            if (!r || r.status !== "open") return;
+            r.vol = VOLS[vi++ % VOLS.length];
+            r.status = "assigned";
+            renderReqs();
+            log(`${r.vol} assigned: “${r.text}” at ${r.loc}.`);
+            if (r.live) onAssigned(r);
+          }
+          $("#reqs").addEventListener("click", (e) => {
+            const b = e.target.closest("[data-assign]");
+            if (b) assign(b.dataset.assign);
+          });
+          $$(".closure .sw").forEach((sw) =>
+            sw.addEventListener("click", () => {
+              const k = sw.dataset.k,
+                v = sw.getAttribute("aria-checked") !== "true";
+              sw.setAttribute("aria-checked", v);
+              $("#cl-" + k).classList.toggle("on", v);
+              const hit = setClosure(k, v);
+              log(
+                `${CL_NAME[k]} ${v ? "marked closed (demo scenario)." : "reopened."}${hit ? " The demo phone was on an affected route and was offered a detour or a volunteer." : ""}`,
+              );
+            }),
+          );
+          setInterval(() => {
+            active = Math.max(15, active + Math.round(Math.random() * 2 - 1));
+            $("#t-active").textContent = active;
+            renderReqs();
+          }, 6000);
+          renderReqs();
+          renderTop();
+          renderStack();
+          renderFeed();
+          return {
+            log,
+            addReq(h) {
+              const lang = { fr: "French", ar: "Arabic", zh: "Mandarin" }[
+                h.lang
+              ];
+              const text = h.escort
+                ? `Escort needed: ${CL_NAME[h.escort]} closed, going to ${I.en.dest[state.dest]}`
+                : I.en.reasons[h.reason] + (lang ? ` · prefers ${lang}` : "");
+              const r = {
+                id: h.id,
+                text,
+                langCode: h.lang === "zh" ? "ZH" : I[h.lang].code,
+                loc: h.loc,
+                t: h.t,
+                status: "open",
+                live: true,
+              };
+              reqs.push(r);
+              renderReqs();
+              log(`New request from the demo phone: “${text}” near ${h.loc}.`);
+            },
+            assign,
+            activeDelta(d) {
+              active += d;
+              $("#t-active").textContent = active;
+            },
+            arrived(dest, secs) {
+              arrivals++;
+              $("#t-arr").textContent = arrivals;
+              if (dest in top) {
+                top[dest]++;
+                renderTop();
+              }
+              log(
+                `Demo phone arrived at ${I.en.dest[dest]} in ${Math.floor(secs / 60)} min ${secs % 60} s${state.lang !== "en" ? " (navigating in " + I[state.lang].name + ")" : ""}.`,
+              );
+            },
+          };
+        })();
+
+        /* ---------- events ---------- */
+        $("#dest-grid").addEventListener("click", (e) => {
+          const b = e.target.closest(".dest");
+          if (!b) return;
+          state.dest = b.dataset.id;
+          go("route");
+        });
+        $("#q").addEventListener("input", renderGrid);
+        $("#btn-scan").onclick = doScan;
+        $("#btn-settings").onclick = () => go("settings");
+        $("#btn-lang").onclick = () => {
+          state.lang = LANGS[(LANGS.indexOf(state.lang) + 1) % LANGS.length];
+          savePrefs();
+          render();
+        };
+        $$(".js-back").forEach((b) => (b.onclick = back));
+        $("#btn-start").onclick = startNav;
+        $("#btn-new").onclick = () => {
+          state.history = [];
+          go("home", false);
+        };
+        $$(".js-help").forEach((b) => (b.onclick = openHelp));
+        $("#help").addEventListener("click", (e) => {
+          if (e.target.id === "help") closeHelp();
+        });
+        $("#c-walk").onclick = () => {
+          if (!nav) return;
+          nav.walking = !nav.walking;
+          setWalkBtn();
+        };
+        $("#c-skip").onclick = () => {
+          if (!nav || nav.riding) return;
+          nav.left = 0;
+          maneuver();
+        };
+        $("#c-audio").onclick = () => {
+          state.audio = !state.audio;
+          savePrefs();
+          $("#c-audio").setAttribute("aria-pressed", state.audio);
+          if (!state.audio)
+            try {
+              speechSynthesis.cancel();
+            } catch (e) {}
+          else announce();
+        };
+        $("#c-hap").onclick = () => {
+          state.haptic = !state.haptic;
+          savePrefs();
+          $("#c-hap").setAttribute("aria-pressed", state.haptic);
+          if (state.haptic) haptic("left");
+        };
+        $("#c-end").onclick = endNav;
+        $("#seg-lang").addEventListener("click", (e) => {
+          const b = e.target.closest("button");
+          if (!b) return;
+          state.lang = b.dataset.v;
+          savePrefs();
+          render();
+        });
+        $("#seg-size").addEventListener("click", (e) => {
+          const b = e.target.closest("button");
+          if (!b) return;
+          state.scale = +b.dataset.v;
+          savePrefs();
+          render();
+        });
+        $("#seg-pace").addEventListener("click", (e) => {
+          const b = e.target.closest("button");
+          if (!b) return;
+          state.pace = b.dataset.v;
+          savePrefs();
+          render();
+        });
+        $("#sw-hc").onclick = () => {
+          state.hc = !state.hc;
+          savePrefs();
+          render();
+        };
+        $("#sw-audio").onclick = () => {
+          state.audio = !state.audio;
+          savePrefs();
+          render();
+        };
+        $("#sw-hap").onclick = () => {
+          state.haptic = !state.haptic;
+          savePrefs();
+          render();
+          if (state.haptic) haptic("right");
+        };
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" && !$("#help").hidden) closeHelp();
+        });
+        function setTab(v) {
+          $("#stage").dataset.view = v;
+          $("#tab-phone").setAttribute("aria-selected", v === "phone");
+          $("#tab-console").setAttribute("aria-selected", v === "console");
+        }
+        $("#tab-phone").onclick = () => setTab("phone");
+        $("#tab-console").onclick = () => setTab("console");
+        function clock() {
+          $("#clock").textContent = new Date()
+            .toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+            .replace(/\s?[AP]M/i, "");
+        }
+        clock();
+        setInterval(clock, 30000);
+        try {
+          speechSynthesis && speechSynthesis.getVoices();
+        } catch (e) {}
+
+        paintIcons();
+        render();
+      })();
+    </script>
+  </body>
+</html>
