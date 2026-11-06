@@ -16,6 +16,7 @@ import { useClosures } from "./hooks/useClosures";
 import { useFeedback } from "./hooks/useFeedback";
 import { useHelpRequest } from "./hooks/useHelpRequest";
 import { useNavigation } from "./hooks/useNavigation";
+import { useNavigationPresence } from "./hooks/useNavigationPresence";
 import { usePhoneFit } from "./hooks/usePhoneFit";
 import { setPrefs, usePrefs, type Prefs } from "./hooks/usePrefs";
 import { ChoiceSheet } from "./overlays/ChoiceSheet";
@@ -88,6 +89,8 @@ export function PatientApp() {
       void recordArrival(d, seconds, prefs.lang);
     },
   });
+
+  useNavigationPresence(dest, prefs.lang, navigation.nav !== null);
 
   function startNav() {
     if (!dest) return;
