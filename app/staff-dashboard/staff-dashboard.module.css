@@ -185,6 +185,9 @@
   gap: 12px;
   min-width: 0;
 }
+.panel.wide {
+  grid-column: 1 / -1;
+}
 .panel h3 {
   margin: 0;
   font-family: var(--f-display);
@@ -292,42 +295,6 @@
 .closure.on strong {
   color: var(--crit);
 }
-.bars {
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-}
-.bar {
-  display: grid;
-  grid-template-columns: minmax(0, 9.5rem) minmax(0, 1fr) 2.5rem;
-  gap: 10px;
-  align-items: center;
-  font-size: 0.85rem;
-}
-.bar span:first-child {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.bar .tr {
-  height: 10px;
-  background: var(--surface-2);
-  border-radius: 99px;
-  overflow: hidden;
-}
-.bar .tr i {
-  display: block;
-  height: 100%;
-  background: var(--lc);
-  border-radius: 99px;
-  transition: width 0.4s;
-}
-.bar b {
-  font-family: var(--f-mono);
-  font-size: 0.8rem;
-  text-align: end;
-  font-variant-numeric: tabular-nums;
-}
 .stack {
   display: flex;
   height: 12px;
@@ -356,14 +323,6 @@
   height: 9px;
   border-radius: 2px;
   display: inline-block;
-}
-.sub-h {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  font-weight: 700;
-  margin: 4px 0 0;
 }
 .feed {
   list-style: none;

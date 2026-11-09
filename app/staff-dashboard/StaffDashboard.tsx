@@ -4,12 +4,12 @@
 // Everything shown is live: closures, help requests, activity, top destinations and
 // arrivals via table changes; active navigations via Presence (a live count of phones, no baseline).
 
-import { useState, useSyncExternalStore, type CSSProperties } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { Icon, MarkIcon } from "@/components/Icon";
 import { assignVolunteer, resetDemo, setClosure } from "@/app/actions";
-import { DEST, isDestId } from "@/lib/navconnect/destinations";
-import { I } from "@/lib/navconnect/i18n";
+import { isDestId } from "@/lib/navconnect/destinations";
 import { isClosureKey } from "@/lib/navconnect/routes";
+import type { DestId } from "@/lib/navconnect/types";
 import {
   TIME_SAVED_HOURS,
   LANGUAGE_MIX,
@@ -21,6 +21,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { getNavigationCount, subscribeNavigationCount } from "@/lib/supabase/presence";
 import { unwrap, type Row } from "@/lib/supabase/utils";
 import styles from "./staff-dashboard.module.css";
+import { HeatMap } from "./HeatMap";
 import { useLiveTable } from "./useLiveTable";
 
 type Closure = Row<"closures">;
@@ -28,7 +29,6 @@ type HelpRequest = Row<"help_requests">;
 type Activity = Row<"activity">;
 
 const FEED_LIMIT = 50;
-const TOP_LIMIT = 5;
 
 /** Class names using the prototype's names. */
 function cx(...names: (string | false | null | undefined)[]): string {
@@ -156,11 +156,8 @@ export function StaffDashboard() {
   const stat = (key: string) => stats?.find((s) => s.key === key)?.value;
   const arrivals = stat("arrivals_today");
 
-  const top = (counts ?? [])
-    .filter((c) => isDestId(c.destination))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, TOP_LIMIT);
-  const topMax = Math.max(1, ...top.map((c) => c.count));
+  const visitCounts: Partial<Record<DestId, number>> = {};
+  for (const c of counts ?? []) if (isDestId(c.destination)) visitCounts[c.destination] = c.count;
 
   const feed = (activity ?? []).slice(0, FEED_LIMIT);
   const show = (v: number | undefined) => (v === undefined ? "–" : v);
@@ -296,26 +293,24 @@ export function StaffDashboard() {
             </div>
 
             <div className={cx("panel")}>
-              <h3>Top destinations today</h3>
-              <div className={cx("bars")}>
-                {top.map((c) => {
-                  const id = c.destination as keyof typeof DEST;
-                  return (
-                    <div
-                      key={id}
-                      className={cx("bar")}
-                      style={{ "--lc": `var(--l-${DEST[id].line})` } as CSSProperties}
-                    >
-                      <span>{I.en.dest[id]}</span>
-                      <span className={cx("tr")}>
-                        <i style={{ width: `${((c.count / topMax) * 100).toFixed(1)}%` }} />
-                      </span>
-                      <b>{c.count}</b>
-                    </div>
-                  );
-                })}
-              </div>
-              <p className={cx("sub-h")}>Navigation language</p>
+              <h3>Destination heatmap</h3>
+              <HeatMap counts={visitCounts} />
+            </div>
+
+            <div className={cx("panel")}>
+              <h3>Activity</h3>
+              <ul className={cx("feed")} aria-live="polite">
+                {feed.map((a: Activity) => (
+                  <li key={a.id} className={cx(fresh.has(a.id) && "new")}>
+                    <time dateTime={a.created_at}>{fmtTime(a.created_at)}</time>
+                    <span>{a.message}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className={cx("panel", "wide")}>
+              <h3>Navigation language</h3>
               <div className={cx("stack")}>
                 {LANGUAGE_MIX.map((l) => (
                   <i
@@ -333,18 +328,6 @@ export function StaffDashboard() {
                   </span>
                 ))}
               </div>
-            </div>
-
-            <div className={cx("panel")}>
-              <h3>Activity</h3>
-              <ul className={cx("feed")} aria-live="polite">
-                {feed.map((a: Activity) => (
-                  <li key={a.id} className={cx(fresh.has(a.id) && "new")}>
-                    <time dateTime={a.created_at}>{fmtTime(a.created_at)}</time>
-                    <span>{a.message}</span>
-                  </li>
-                ))}
-              </ul>
             </div>
           </div>
         </section>

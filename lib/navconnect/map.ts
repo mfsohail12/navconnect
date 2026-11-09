@@ -3,7 +3,7 @@
 // which mirrors the prototype's mapSVG(): wings, wing badges, labels, elevators,
 // closure markers, the animated route line, the "you are here" pulse and the destination pin.
 
-import type { ClosureKey, Point } from "./types";
+import type { ClosureKey, DestId, Point } from "./types";
 
 export const MAP_VIEWBOX = "270 222 975 600";
 export const MAP_ARIA_LABEL =
@@ -100,4 +100,27 @@ export const CLOSURE_MARKS: Record<
 > = {
   aWing: { line: [[760, 645], [610, 645]], x: [690, 645], size: 26 },
   cElev: { x: [893, 645], size: 30 },
+};
+
+export type HeatSpot = {
+  at: Point;
+  /** Short name drawn on the map (the tooltip shows the full name). */
+  short: string;
+  /** Which side of the dot the name label sits on. */
+  label: "left" | "right" | "above" | "below";
+};
+
+/**
+ * Where each destination sits on the staff heatmap. Roughly the route end points, nudged apart
+ * where destinations share one (MRI / Breast, Cardiology / Dialysis) and clear of the wing badges.
+ */
+export const HEAT_SPOTS: Record<DestId, HeatSpot> = {
+  img: { at: [440, 630], short: "Imaging", label: "right" },
+  mri: { at: [775, 585], short: "MRI", label: "below" },
+  nuc: { at: [370, 485], short: "Nuclear Med", label: "right" },
+  breast: { at: [845, 600], short: "Breast", label: "right" },
+  card: { at: [925, 662], short: "Cardiology", label: "right" },
+  dial: { at: [925, 626], short: "Dialysis", label: "right" },
+  cancer: { at: [880, 755], short: "Cancer Centre", label: "left" },
+  pharm: { at: [735, 500], short: "Pharmacy", label: "left" },
 };
