@@ -1,16 +1,25 @@
 "use client";
 
-// How often each destination has been visited, read once when the home screen mounts.
+// How often each destination has been visited, refreshed whenever the home screen mounts.
 // Not live on purpose: tiles reordering under someone's finger would cause mis-taps.
-// Returns null until loaded (or if the read fails), so callers fall back to the default order.
+//
+// The last result is kept at module level, so coming back to the home screen starts in the
+// right order straight away instead of showing the default order and then re-sorting.
+// `settled` is false only until the very first read finishes (or fails), so the caller can
+// hold the grid back rather than show it in the wrong order.
 
 import { useEffect, useState } from "react";
 import { isDestId } from "@/lib/navconnect/destinations";
 import type { DestId } from "@/lib/navconnect/types";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
-export function useDestinationCounts(): Partial<Record<DestId, number>> | null {
-  const [counts, setCounts] = useState<Partial<Record<DestId, number>> | null>(null);
+type Counts = Partial<Record<DestId, number>>;
+
+let cached: Counts | null = null;
+
+export function useDestinationCounts(): { counts: Counts; settled: boolean } {
+  const [counts, setCounts] = useState<Counts | null>(cached);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -18,9 +27,14 @@ export function useDestinationCounts(): Partial<Record<DestId, number>> | null {
       .from("destination_counts")
       .select("destination, count")
       .then(({ data, error }) => {
-        if (cancelled || error || !data) return;
-        const next: Partial<Record<DestId, number>> = {};
+        if (cancelled) return;
+        if (error || !data) {
+          setFailed(true);
+          return;
+        }
+        const next: Counts = {};
         for (const row of data) if (isDestId(row.destination)) next[row.destination] = row.count;
+        cached = next;
         setCounts(next);
       });
     return () => {
@@ -28,5 +42,5 @@ export function useDestinationCounts(): Partial<Record<DestId, number>> | null {
     };
   }, []);
 
-  return counts;
+  return { counts: counts ?? {}, settled: counts !== null || failed };
 }
