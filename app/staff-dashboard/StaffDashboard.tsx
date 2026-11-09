@@ -4,6 +4,7 @@
 // Everything shown is live: closures, help requests, activity, top destinations and
 // arrivals via table changes; active navigations via Presence (a live count of phones, no baseline).
 
+import { useRouter } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
 import { MarkIcon } from "@/components/Icon";
 import { assignVolunteer, completeRequest, resetDemo, setClosure } from "@/app/actions";
@@ -24,6 +25,7 @@ import {
   subscribeNavigationCount,
 } from "@/lib/supabase/presence";
 import { unwrap, type Row } from "@/lib/supabase/utils";
+import { lockStaffDashboard } from "./auth-actions";
 import styles from "./staff-dashboard.module.css";
 import { HeatMap } from "./HeatMap";
 import { useLiveTable } from "./useLiveTable";
@@ -102,6 +104,7 @@ async function loadStats() {
 // ---- component ----------------------------------------------------------------
 
 export function StaffDashboard() {
+  const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [fresh, setFresh] = useState<ReadonlySet<number>>(new Set());
@@ -157,6 +160,11 @@ export function StaffDashboard() {
     if (!isClosureKey(c.key)) return;
     const key = c.key;
     void run(`closure:${key}`, () => setClosure(key, !c.is_closed));
+  }
+
+  async function onLogout() {
+    await lockStaffDashboard();
+    router.refresh();
   }
 
   function onReset() {
@@ -229,6 +237,9 @@ export function StaffDashboard() {
                 disabled={busy !== null}
               >
                 {busy === "reset" ? "Resetting…" : "Reset demo"}
+              </button>
+              <button className={cx("reset")} onClick={onLogout}>
+                Log out
               </button>
             </div>
           </div>

@@ -1,0 +1,89 @@
+/* Staff dashboard password gate. Tokens come from app/globals.css. */
+
+.page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 20px max(16px, env(safe-area-inset-right, 0px)) 20px
+    max(16px, env(safe-area-inset-left, 0px));
+}
+
+.card {
+  width: 100%;
+  max-width: 360px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mark {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  display: grid;
+  place-items: center;
+  margin-bottom: 6px;
+}
+
+.card h1 {
+  font-family: var(--f-display);
+  font-size: 1.35rem;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.sub {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.card label {
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.card input {
+  font: inherit;
+  font-size: 1rem; /* 16px+ stops iOS zooming on focus */
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--ink);
+}
+.card input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.card input[aria-invalid="true"] {
+  border-color: var(--crit);
+}
+
+.error {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--crit);
+}
+
+.card button {
+  margin-top: 8px;
+  border: 0;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font: inherit;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 12px;
+}
+.card button:disabled {
+  opacity: 0.5;
+}
