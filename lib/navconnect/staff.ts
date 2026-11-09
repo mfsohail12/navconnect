@@ -10,6 +10,9 @@ import type { ClosureKey, DestId, HelpReason } from "./types";
 /** Volunteers handed out in rotation when staff click "Assign volunteer". */
 export const VOLS = ["Fatima K.", "Mei L.", "Joseph A.", "Priya S."] as const;
 
+/** Everyone on shift: the rotation above plus the volunteer already helping in the seeded data. */
+export const VOLUNTEER_ROSTER: readonly string[] = [...VOLS, "Daniel O."];
+
 /** Help sheet reasons, in the same order as each dictionary's `reasons` list. */
 export const HELP_REASONS = ["lost", "wheelchair", "interpreter", "other"] as const satisfies readonly HelpReason[];
 
@@ -34,8 +37,8 @@ export const LANGUAGE_MIX: readonly { name: string; pct: number; color: string }
   { name: "Other", pct: 5, color: "--muted" },
 ];
 
-/** Seeded baseline for "active navigations"; Presence adds live phones on top. */
-export const ACTIVE_NAV_BASELINE = 23;
+/** Hardcoded demo figure for the "total time saved" tile: hours saved today. */
+export const TIME_SAVED_HOURS = 34.3;
 
 const LANG_NAMES: Record<string, string> = {
   en: "English",
@@ -87,6 +90,8 @@ export const activityMessages = {
     `New request from a visitor: “${requestText(r)}” near ${r.location}.`,
   assigned: (r: RequestSummary & { location: string; volunteer: string }) =>
     `${r.volunteer} assigned: “${requestText(r)}” at ${r.location}.`,
+  resolved: (r: RequestSummary & { location: string; volunteer: string }) =>
+    `${r.volunteer} resolved: “${requestText(r)}” at ${r.location}. Back on the available list.`,
   closure: (k: ClosureKey, closed: boolean) =>
     `${CLOSURE_NAMES[k]} ${closed ? "marked closed (demo scenario)." : "reopened."}`,
   detour: (k: ClosureKey, dest: DestId) =>

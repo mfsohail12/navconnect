@@ -11,7 +11,7 @@ We're turning the approved single-file prototype (`docs/reference/navconnect-pro
 - **Several phones at once** feed one dashboard live. A help request sent from any phone appears on the dashboard within a second or two. A closure toggled on the dashboard reaches every phone on an affected route.
 - **Installable as a PWA** so it looks like a native app from the home screen.
 
-Everything except the shared demo state is mocked. Positioning, the camera view and the letter scan are simulated exactly as in the prototype.
+Everything except the shared demo state is mocked. Positioning and the camera view are simulated exactly as in the prototype. The letter scan opens the device's real camera or photo picker, but the image is ignored and the result is always Diagnostic Imaging.
 
 ## 2. The prototype is the spec
 
@@ -44,7 +44,7 @@ What to carry over from the prototype's `<script>` and `<style>`:
   - `lib/supabase/use-table-changes.ts`: `useTableChanges(table, { filter, onChange, onResync })`, which refetches on subscribe, reconnect and tab visibility
 - **Writes:** Server Actions in `app/actions.ts` (or split by feature). Each action is one atomic statement or one `rpc()` call.
 - **Device identity:** `getClientId()` (random ID in `localStorage`). Help requests carry `client_id` so "Assign volunteer" reaches only the phone that asked.
-- **Active navigations:** a Supabase Realtime Presence channel (for example `navigating`). A phone tracks itself while navigating and untracks on arrival or end. The dashboard shows the presence count added to a seeded baseline, so it looks busy.
+- **Active navigations:** a Supabase Realtime Presence channel (for example `navigating`). A phone tracks itself while navigating and untracks on arrival or end. The dashboard shows the live presence count only (no seeded baseline), so it reflects the phones actually navigating.
 
 ## 4. Shared data model
 
@@ -94,7 +94,7 @@ Activity messages should read like the prototype's, e.g. "New request from a vis
 
 ## 7. Out of scope
 
-Auth or logins, real indoor positioning, a real camera or AR feed, real OCR of letters, a native app, offline mode, analytics, tests beyond a quick smoke check. Don't add libraries for state management, styling or animation unless clearly necessary. React state, `useReducer` and plain CSS are enough.
+Auth or logins, real indoor positioning, a live camera or AR feed, real OCR of letters, a native app, offline mode, analytics, tests beyond a quick smoke check. Don't add libraries for state management, styling or animation unless clearly necessary. React state, `useReducer` and plain CSS are enough.
 
 ## 8. Build phases
 

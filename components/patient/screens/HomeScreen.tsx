@@ -4,6 +4,7 @@ import { DEST, searchDestinations } from "@/lib/navconnect/destinations";
 import type { Dictionary } from "@/lib/navconnect/i18n";
 import type { DestId, LangCode } from "@/lib/navconnect/types";
 import { cx } from "../cx";
+import { useDestinationCounts } from "../useDestinationCounts";
 
 type Props = {
   t: Dictionary;
@@ -18,7 +19,11 @@ type Props = {
 };
 
 export function HomeScreen({ t, lang, query, onQuery, onPick, onScan, onSettings, onLanguage, onHelp }: Props) {
-  const list = searchDestinations(query, lang);
+  const { counts, settled } = useDestinationCounts();
+  // Most visited first. The sort is stable, so ties (and unvisited places) keep the default order.
+  const list = [...searchDestinations(query, lang)].sort(
+    (a, b) => (counts[b] ?? 0) - (counts[a] ?? 0),
+  );
   return (
     <section className={cx("screen")} aria-label="NavConnect">
       <header className={cx("app-h")}>
@@ -64,8 +69,10 @@ export function HomeScreen({ t, lang, query, onQuery, onPick, onScan, onSettings
             <small>{t.scanSub}</small>
           </span>
         </button>
-        <h3 className={cx("sec")}>{t.popular}</h3>
-        <div className={cx("dest-grid")}>
+        <h3 className={cx("sec")}>{query.trim() ? t.searchResults : t.popular}</h3>
+        {/* Hidden (but still taking up space) until the visit counts arrive, so the tiles
+            never appear in the default order and then jump. */}
+        <div className={cx("dest-grid")} style={settled ? undefined : { visibility: "hidden" }}>
           {list.length === 0 ? (
             <p className={cx("empty")}>{t.none}</p>
           ) : (
@@ -85,12 +92,11 @@ export function HomeScreen({ t, lang, query, onQuery, onPick, onScan, onSettings
             ))
           )}
         </div>
-        <p className={cx("fine")}>{t.disclaimer}</p>
       </div>
       <footer className={cx("app-f")}>
         <button className={cx("btn", "btn-help")} onClick={onHelp}>
           <Icon name="help" />
-          <span>{t.helpBtn}</span>
+          <span>{t.needHelpBtn}</span>
         </button>
       </footer>
     </section>

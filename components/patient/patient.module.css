@@ -26,12 +26,6 @@
   place-items: center;
   flex: none;
 }
-.phone-note {
-  font-size: 0.82rem;
-  color: var(--muted);
-  text-align: center;
-  max-width: 390px;
-}
 
 /* ---------- PHONE ---------- */
 .phone {
@@ -46,17 +40,35 @@
   box-shadow: var(--shadow);
   font-size: calc(15px * var(--scale));
   isolation: isolate;
+  /* Text inherits from here, not the page body, so a theme set on .phone (high contrast)
+     applies to every child. Without it, light-mode body ink stays dark on a black screen. */
+  color: var(--ink);
 }
+/* High contrast follows the device theme, going to the extreme of the same mode:
+   light device -> white screen with black text, dark device -> black screen with white text. */
 .phone.hc {
-  --surface: #000;
-  --surface-2: #0c0c0c;
-  --ink: #fff;
-  --muted: #f0f0f0;
-  --line: #fff;
-  --accent: #ffd60a;
-  --accent-ink: #000;
-  --accent-soft: #2a2500;
-  --bg: #000;
+  --surface: #fff;
+  --surface-2: #f2f2f2;
+  --ink: #000;
+  --muted: #1a1a1a;
+  --line: #000;
+  --accent: #0033cc;
+  --accent-ink: #fff;
+  --accent-soft: #e6ebff;
+  --bg: #fff;
+}
+@media (prefers-color-scheme: dark) {
+  .phone.hc {
+    --surface: #000;
+    --surface-2: #0c0c0c;
+    --ink: #fff;
+    --muted: #f0f0f0;
+    --line: #fff;
+    --accent: #ffd60a;
+    --accent-ink: #000;
+    --accent-soft: #2a2500;
+    --bg: #000;
+  }
 }
 .sb {
   position: absolute;
@@ -205,7 +217,8 @@
   background: none;
   outline: none;
   font: inherit;
-  font-size: 1em;
+  /* At least 16px: iOS Safari zooms the page when a focused input is smaller. */
+  font-size: max(16px, 1em);
   flex: 1;
   min-width: 0;
   color: var(--ink);
@@ -416,10 +429,13 @@
 }
 .stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 8px;
 }
 .stat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   background: var(--surface-2);
   border-radius: 14px;
   padding: 10px 12px;
@@ -433,6 +449,23 @@
 .stat span {
   font-size: 0.78em;
   color: var(--muted);
+}
+/* Icon badge, same look as the sheet options. Sized in em so it tracks the text size
+   and stays about as tall as the value + label stacked beside it. */
+.stat .stat-ic {
+  flex: none;
+  font-size: 1em; /* undo the label size from `.stat span` so the em sizes below are right */
+  display: grid;
+  place-items: center;
+  width: 2.6em;
+  height: 2.6em;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.stat .stat-ic svg {
+  width: 1.4em;
+  height: 1.4em;
 }
 .chips {
   display: flex;
@@ -568,196 +601,61 @@
   overflow: hidden;
   background: var(--ar-back);
 }
-.scene {
-  position: absolute;
-  inset: -4% -6%;
-  transition: transform 0.6s ease;
-}
-.poly {
+.sc {
   position: absolute;
   inset: 0;
+  animation: sc-in 0.45s ease-out;
 }
-.ceil {
-  background: var(--ar-ceil);
-  clip-path: polygon(0 0, 100% 0, 60% 34%, 40% 34%);
+.sc-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
-.wl {
-  background: linear-gradient(90deg, var(--ar-wl), #e3e8ec);
-  clip-path: polygon(0 0, 40% 34%, 40% 50%, 0 100%);
+.sc-chev {
+  animation: sc-chev 1.5s ease-in-out infinite;
+  opacity: 0.25;
 }
-.wr {
-  background: linear-gradient(270deg, var(--ar-wr), #dce2e7);
-  clip-path: polygon(100% 0, 60% 34%, 60% 50%, 100% 100%);
+.sc-dash {
+  animation: sc-dash 1.4s linear infinite;
 }
-.back {
-  background: linear-gradient(#c9d2da, var(--ar-back));
-  clip-path: polygon(40% 34%, 60% 34%, 60% 50%, 40% 50%);
+.sc-pop {
+  animation: pop 1.2s ease-in-out infinite;
 }
-.floor {
-  background: linear-gradient(0deg, #9aa5ae, #b7c0c7);
-  clip-path: polygon(0 100%, 40% 50%, 60% 50%, 100% 100%);
-}
-.fline {
-  background: var(--lc);
-  clip-path: polygon(45.5% 100%, 54.5% 100%, 50.6% 50%, 49.4% 50%);
-  opacity: 0.9;
-}
-.door {
-  background: var(--ar-door);
-}
-.d1 {
-  clip-path: polygon(10% 36%, 22% 37.5%, 22% 72.5%, 10% 87.5%);
-}
-.d2 {
-  clip-path: polygon(28% 38.2%, 34% 38.9%, 34% 57.5%, 28% 65%);
-}
-.d3 {
-  clip-path: polygon(90% 36%, 78% 37.5%, 78% 72.5%, 90% 87.5%);
-}
-.d4 {
-  clip-path: polygon(72% 38.2%, 66% 38.9%, 66% 57.5%, 72% 65%);
-}
-.sign {
-  background: var(--lc);
-  clip-path: polygon(78.5% 30%, 86% 28.5%, 86% 33.5%, 78.5% 34.6%);
-}
-.lt {
-  background: var(--ar-light);
-}
-.lt1 {
-  clip-path: polygon(43% 3%, 57% 3%, 55.5% 10%, 44.5% 10%);
-}
-.lt2 {
-  clip-path: polygon(46.5% 19%, 53.5% 19%, 52.8% 24%, 47.2% 24%);
-}
-.lt3 {
-  clip-path: polygon(48.4% 28%, 51.6% 28%, 51.3% 30.5%, 48.7% 30.5%);
-}
-.plane {
-  position: absolute;
-  left: 50%;
-  bottom: -2%;
-  width: 30%;
-  height: 60%;
-  transform: translateX(-50%) perspective(240px) rotateX(58deg);
-  transform-origin: 50% 100%;
-  overflow: hidden;
-}
-.chev {
-  position: absolute;
-  left: 50%;
-  width: 66%;
-  aspect-ratio: 2/1.1;
-  transform: translateX(-50%);
-  background: var(--lc);
-  clip-path: polygon(50% 0, 100% 50%, 100% 88%, 50% 38%, 0 88%, 0 50%);
-  animation: chev 2.4s linear infinite;
-  animation-play-state: paused;
-  filter: drop-shadow(0 0 4px #fff);
-}
-.chev:nth-child(2) {
-  animation-delay: -0.6s;
-}
-.chev:nth-child(3) {
-  animation-delay: -1.2s;
-}
-.chev:nth-child(4) {
-  animation-delay: -1.8s;
-}
-@keyframes chev {
-  0% {
-    top: -22%;
+@keyframes sc-in {
+  from {
     opacity: 0;
+    transform: scale(1.04);
   }
-  15% {
+}
+@keyframes sc-chev {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  40% {
     opacity: 1;
   }
-  100% {
-    top: 100%;
-    opacity: 0.95;
+}
+@keyframes sc-dash {
+  to {
+    stroke-dashoffset: -72;
   }
-}
-.ar.walking .chev {
-  animation-play-state: running;
-}
-.ar.walking .scene {
-  animation: bob 1.1s ease-in-out infinite;
-}
-@keyframes bob {
-  50% {
-    transform: translateY(0.6%);
-  }
-}
-.scene.pan-left {
-  transform: translateX(9%) rotate(-1.2deg);
-}
-.scene.pan-right {
-  transform: translateX(-9%) rotate(1.2deg);
-}
-.anchor {
-  position: absolute;
-  left: 50%;
-  top: 40%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  transition:
-    opacity 0.3s,
-    transform 0.3s;
-}
-.anchor[hidden] {
-  display: none !important;
-}
-.an-arrow {
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  background: var(--lc);
-  color: #fff;
-  display: grid;
-  place-items: center;
-  box-shadow:
-    0 0 0 6px rgba(255, 255, 255, 0.75),
-    0 12px 30px rgba(0, 0, 0, 0.35);
-  animation: pop 1.2s ease-in-out infinite;
 }
 @keyframes pop {
   50% {
     transform: scale(1.08);
   }
 }
-.an-label {
-  background: rgba(13, 26, 45, 0.88);
-  color: #fff;
-  font-weight: 700;
-  font-size: 0.85em;
-  padding: 6px 12px;
-  border-radius: 999px;
-  white-space: nowrap;
-}
-.cam-badge {
-  position: absolute;
-  top: 44px;
-  inset-inline-end: 14px;
-  background: rgba(13, 26, 45, 0.7);
-  color: #fff;
-  font-size: 0.7em;
-  font-weight: 700;
-  padding: 5px 10px;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  z-index: 5;
-}
-.cam-badge::before {
-  content: "";
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #ff4d4d;
+@media (prefers-reduced-motion: reduce) {
+  .sc,
+  .sc-chev,
+  .sc-dash,
+  .sc-pop {
+    animation: none;
+  }
+  .sc-chev {
+    opacity: 1;
+  }
 }
 .nav-card {
   position: absolute;
@@ -848,19 +746,20 @@
   box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.2);
 }
 .prog {
+  display: flex;
+  gap: 4px;
   height: 8px;
-  background: var(--surface-2);
-  border-radius: 99px;
-  overflow: hidden;
-  border: 1px solid var(--line);
 }
 .prog i {
-  display: block;
-  height: 100%;
-  width: 0;
-  background: var(--lc);
+  flex: 1;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
   border-radius: 99px;
-  transition: width 0.15s linear;
+  transition: background 0.3s ease;
+}
+.prog i.done {
+  background: var(--lc);
+  border-color: var(--lc);
 }
 .nb-row {
   display: flex;
@@ -875,9 +774,28 @@
   font-size: 1.25em;
   font-variant-numeric: tabular-nums;
 }
+.nav-actions {
+  display: flex;
+  gap: 8px;
+}
+.nav-cta {
+  flex: 1;
+  min-height: 52px;
+  font-size: 1.05em;
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+/* Start and Finish are green; Continue is blue. */
+.nav-cta.begin,
+.nav-cta.finish {
+  background: var(--ok);
+}
+.nav-cta:active {
+  filter: brightness(0.92);
+}
 .ctrls {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
 }
 .ctrl {
@@ -888,28 +806,57 @@
   border: 1px solid var(--line);
   background: var(--surface-2);
   border-radius: 14px;
-  padding: 8px 2px;
+  padding: 6px 2px;
   font-size: 0.68em;
   font-weight: 700;
-  min-height: 58px;
+  min-height: 52px;
   justify-content: center;
 }
+.ctrl:disabled {
+  opacity: 0.4;
+}
+.nav-back {
+  flex: none;
+  width: 64px;
+  color: var(--ink);
+}
+/* Voice and Vibrate: muted when off, a vivid teal when on. */
 .ctrl[aria-pressed="false"] {
   color: var(--muted);
-  opacity: 0.7;
+  opacity: 0.75;
 }
-.ctrl.primary {
-  background: var(--accent);
+.ctrl[aria-pressed="true"] {
+  background: var(--l-teal);
+  border-color: var(--l-teal);
   color: var(--accent-ink);
-  border-color: var(--accent);
+  box-shadow: 0 4px 12px -4px var(--l-teal);
 }
 .ctrl.help {
   background: var(--warn-soft);
   color: var(--warn);
   border-color: transparent;
 }
+.ctrl.end {
+  background: var(--crit-soft);
+  color: var(--crit);
+  border-color: var(--crit);
+}
 .ctrl.speaking svg {
   animation: pop 0.6s ease-in-out infinite;
+}
+/* High contrast: one accent colour, so keep every highlight in it. */
+.phone.hc .nav-cta,
+.phone.hc .nav-cta.begin,
+.phone.hc .nav-cta.finish,
+.phone.hc .ctrl[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+.phone.hc .ctrl.end {
+  background: #000;
+  color: #fff;
+  border-color: #fff;
 }
 .reroute {
   position: absolute;
@@ -927,32 +874,6 @@
   gap: 8px;
   align-items: center;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-}
-.riding {
-  position: absolute;
-  inset: 0;
-  z-index: 9;
-  background: rgba(13, 26, 45, 0.82);
-  display: grid;
-  place-items: center;
-  color: #fff;
-  text-align: center;
-}
-.riding .rc {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-.riding .fl {
-  font-family: var(--f-display);
-  font-size: 4em;
-  font-weight: 700;
-  line-height: 1;
-}
-.riding p {
-  margin: 0;
-  font-weight: 700;
 }
 
 /* arrive */
@@ -1267,9 +1188,6 @@
     min-height: 0;
     padding: 0;
   }
-  .phone-note {
-    display: none;
-  }
   .phone {
     position: fixed;
     inset: 0;
@@ -1292,9 +1210,6 @@
   .app-f,
   .nav-bottom {
     padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
-  }
-  .cam-badge {
-    top: calc(env(safe-area-inset-top, 0px) + 12px);
   }
   .reroute {
     top: calc(env(safe-area-inset-top, 0px) + 10px);

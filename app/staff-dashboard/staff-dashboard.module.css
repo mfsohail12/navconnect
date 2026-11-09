@@ -48,11 +48,6 @@
   margin: 0;
   letter-spacing: -0.01em;
 }
-.brand p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.9rem;
-}
 .sw {
   width: 52px;
   height: 32px;
@@ -120,24 +115,9 @@
   border: 1px solid var(--line);
   color: var(--muted);
 }
-.tip {
-  margin: 0;
-  background: var(--accent-soft);
-  border-radius: 14px;
-  padding: 12px 14px;
-  font-size: 0.9rem;
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-}
-.tip svg {
-  flex: none;
-  color: var(--accent);
-  margin-top: 1px;
-}
 .tiles {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 18px;
@@ -170,6 +150,14 @@
 .tile.alert b {
   color: var(--crit);
 }
+.tile .avail,
+.tile .avail small {
+  color: var(--ok);
+}
+.tile .unavail {
+  color: var(--crit);
+  font-weight: 700;
+}
 .c-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -184,6 +172,9 @@
   flex-direction: column;
   gap: 12px;
   min-width: 0;
+}
+.panel.wide {
+  grid-column: 1 / -1;
 }
 .panel h3 {
   margin: 0;
@@ -216,6 +207,16 @@
 }
 .req.assigned {
   border-inline-start-color: var(--ok);
+}
+.req.done {
+  opacity: 0.65;
+}
+.req-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
 }
 .req.live {
   background: var(--accent-soft);
@@ -270,6 +271,15 @@
   border-radius: 99px;
   white-space: nowrap;
 }
+.c-btn.ghost {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+.status.done {
+  color: var(--muted);
+  background: var(--surface-2);
+}
 .closure {
   display: flex;
   gap: 12px;
@@ -291,42 +301,6 @@
 }
 .closure.on strong {
   color: var(--crit);
-}
-.bars {
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-}
-.bar {
-  display: grid;
-  grid-template-columns: minmax(0, 9.5rem) minmax(0, 1fr) 2.5rem;
-  gap: 10px;
-  align-items: center;
-  font-size: 0.85rem;
-}
-.bar span:first-child {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.bar .tr {
-  height: 10px;
-  background: var(--surface-2);
-  border-radius: 99px;
-  overflow: hidden;
-}
-.bar .tr i {
-  display: block;
-  height: 100%;
-  background: var(--lc);
-  border-radius: 99px;
-  transition: width 0.4s;
-}
-.bar b {
-  font-family: var(--f-mono);
-  font-size: 0.8rem;
-  text-align: end;
-  font-variant-numeric: tabular-nums;
 }
 .stack {
   display: flex;
@@ -356,14 +330,6 @@
   height: 9px;
   border-radius: 2px;
   display: inline-block;
-}
-.sub-h {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  font-weight: 700;
-  margin: 4px 0 0;
 }
 .feed {
   list-style: none;
@@ -450,10 +416,13 @@
   .tiles {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .tile:nth-child(2) {
+  .tile:nth-child(even) {
     border-inline-end: 0;
   }
-  .tile:nth-child(-n + 2) {
+  .tile:nth-child(-n + 4) {
     border-bottom: 1px solid var(--line);
+  }
+  .tile:last-child {
+    grid-column: 1 / -1;
   }
 }

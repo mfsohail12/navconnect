@@ -37,8 +37,12 @@ export const ICON_PATHS = {
   skip: '<path d="M5 5l10 7-10 7z"/><path d="M19 5v14"/>',
   help: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14"/><path d="M12 17h.01"/>',
   check: '<path d="M5 12.5l4.5 4.5L19 7"/>',
+  close: '<path d="M6 6l12 12M18 6L6 18"/>',
   camera:
     '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  image:
+    '<rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="M4 17l5-4.5 4 3.5 3-2.5 4 3.5"/>',
   alert:
     '<path d="M12 4l9 16H3z"/><path d="M12 10v4"/><path d="M12 17h.01"/>',
 } as const;

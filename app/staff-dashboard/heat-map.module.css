@@ -1,0 +1,87 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.map {
+  position: relative;
+  background: var(--surface-2);
+  border-radius: 14px;
+  padding: 6px;
+}
+.map svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.glow {
+  fill: var(--crit);
+  stroke: var(--crit);
+  stroke-width: 3;
+  transition: r 0.4s, fill-opacity 0.4s;
+}
+.spot {
+  cursor: pointer;
+  outline: none;
+}
+.pill {
+  fill: var(--surface);
+  fill-opacity: 0.92;
+  stroke: var(--line);
+  stroke-width: 2;
+}
+.name {
+  fill: var(--ink);
+  font-family: var(--f-body);
+}
+.dot {
+  fill: var(--crit);
+  stroke: var(--surface);
+  stroke-width: 4;
+  transition: r 0.15s;
+}
+.spot[data-active] .pill,
+.spot:focus-visible .pill {
+  stroke: var(--crit);
+  stroke-width: 3;
+}
+.tip {
+  position: absolute;
+  transform: translate(-50%, calc(-100% - 22px));
+  background: var(--ink);
+  color: var(--surface);
+  border-radius: 10px;
+  padding: 6px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.78rem;
+  line-height: 1.25;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 1;
+}
+.tip[data-below] {
+  transform: translate(-50%, 22px);
+}
+.tip span {
+  font-family: var(--f-mono);
+  font-variant-numeric: tabular-nums;
+}
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.legend i {
+  flex: 0 0 120px;
+  height: 8px;
+  border-radius: 99px;
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--crit) 20%, var(--surface-2)),
+    var(--crit)
+  );
+}

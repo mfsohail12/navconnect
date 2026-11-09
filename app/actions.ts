@@ -6,6 +6,7 @@
 // replaced by a generic message in production builds.
 
 import { getSupabaseAdminClient } from "@/lib/supabase/server";
+import { isStaffAuthenticated } from "@/lib/staff-auth";
 import { isDestId } from "@/lib/navconnect/destinations";
 import { isClosureKey } from "@/lib/navconnect/routes";
 import { VOLS, activityMessages } from "@/lib/navconnect/staff";
@@ -14,6 +15,8 @@ import type { ClosureKey, DestId, HelpReason } from "@/lib/navconnect/types";
 export type ActionResult<T = null> = { ok: true; data: T } | { ok: false; error: string };
 
 const OK: ActionResult = { ok: true, data: null };
+
+const UNAUTHORIZED = { ok: false, error: "Staff password required." } as const;
 
 const HELP_REASONS: readonly HelpReason[] = ["lost", "wheelchair", "interpreter", "other", "escort"];
 
@@ -95,6 +98,7 @@ export async function sendHelpRequest(
 export async function assignVolunteer(
   requestId: string,
 ): Promise<ActionResult<{ volunteer: string }>> {
+  if (!(await isStaffAuthenticated())) return UNAUTHORIZED;
   try {
     const id = text(requestId, 64);
     if (!id) return { ok: false, error: "Missing request id." };
@@ -132,7 +136,36 @@ export async function assignVolunteer(
 // Closures and detours
 // ---------------------------------------------------------------------------
 
+/** Marks an assigned request as resolved, which frees its volunteer. */
+export async function completeRequest(requestId: string): Promise<ActionResult> {
+  if (!(await isStaffAuthenticated())) return UNAUTHORIZED;
+  try {
+    const id = text(requestId, 64);
+    if (!id) return { ok: false, error: "Missing request id." };
+    const supabase = getSupabaseAdminClient();
+
+    // Only an assigned request can be resolved, so a double click can't log it twice.
+    const { data, error } = await supabase
+      .from("help_requests")
+      .update({ status: "done" })
+      .eq("id", id)
+      .eq("status", "assigned")
+      .select("reason, lang, location, note, destination, escort_for, volunteer")
+      .maybeSingle();
+    if (error) return fail(error);
+    if (!data) return { ok: false, error: "That request isn't assigned." };
+
+    await logActivity(
+      activityMessages.resolved({ ...data, volunteer: data.volunteer ?? "A volunteer" }),
+    );
+    return OK;
+  } catch (e) {
+    return fail(e);
+  }
+}
+
 export async function setClosure(key: ClosureKey, closed: boolean): Promise<ActionResult> {
+  if (!(await isStaffAuthenticated())) return UNAUTHORIZED;
   try {
     if (!isClosureKey(key)) return { ok: false, error: "Unknown closure." };
     if (typeof closed !== "boolean") return { ok: false, error: "Invalid value." };
@@ -195,6 +228,7 @@ export async function recordArrival(
 }
 
 export async function resetDemo(): Promise<ActionResult> {
+  if (!(await isStaffAuthenticated())) return UNAUTHORIZED;
   try {
     const { error } = await getSupabaseAdminClient().rpc("reset_demo");
     if (error) return fail(error);

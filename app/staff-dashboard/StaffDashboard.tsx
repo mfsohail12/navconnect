@@ -2,25 +2,32 @@
 
 // The staff & volunteer console, ported from the prototype and backed by Supabase.
 // Everything shown is live: closures, help requests, activity, top destinations and
-// arrivals via table changes; active navigations via Presence (on top of a seeded baseline).
+// arrivals via table changes; active navigations via Presence (a live count of phones, no baseline).
 
-import { useState, useSyncExternalStore, type CSSProperties } from "react";
-import { Icon, MarkIcon } from "@/components/Icon";
-import { assignVolunteer, resetDemo, setClosure } from "@/app/actions";
-import { DEST, isDestId } from "@/lib/navconnect/destinations";
-import { I } from "@/lib/navconnect/i18n";
+import { useRouter } from "next/navigation";
+import { useState, useSyncExternalStore } from "react";
+import { MarkIcon } from "@/components/Icon";
+import { assignVolunteer, completeRequest, resetDemo, setClosure } from "@/app/actions";
+import { isDestId } from "@/lib/navconnect/destinations";
 import { isClosureKey } from "@/lib/navconnect/routes";
+import type { DestId } from "@/lib/navconnect/types";
 import {
-  ACTIVE_NAV_BASELINE,
+  TIME_SAVED_HOURS,
+  VOLUNTEER_ROSTER,
   LANGUAGE_MIX,
   langTag,
   minutesAgo,
   requestText,
 } from "@/lib/navconnect/staff";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import { getNavigationCount, subscribeNavigationCount } from "@/lib/supabase/presence";
+import {
+  getNavigationCount,
+  subscribeNavigationCount,
+} from "@/lib/supabase/presence";
 import { unwrap, type Row } from "@/lib/supabase/utils";
+import { lockStaffDashboard } from "./auth-actions";
 import styles from "./staff-dashboard.module.css";
+import { HeatMap } from "./HeatMap";
 import { useLiveTable } from "./useLiveTable";
 
 type Closure = Row<"closures">;
@@ -28,7 +35,6 @@ type HelpRequest = Row<"help_requests">;
 type Activity = Row<"activity">;
 
 const FEED_LIMIT = 50;
-const TOP_LIMIT = 5;
 
 /** Class names using the prototype's names. */
 function cx(...names: (string | false | null | undefined)[]): string {
@@ -67,11 +73,16 @@ const newestFirst = (a: { created_at: string }, b: { created_at: string }) =>
 const db = () => getSupabaseBrowserClient();
 
 async function loadClosures() {
-  return unwrap(await db().from("closures").select("*").order("key", { ascending: false }));
+  return unwrap(
+    await db().from("closures").select("*").order("key", { ascending: false }),
+  );
 }
 async function loadRequests() {
   return unwrap(
-    await db().from("help_requests").select("*").order("created_at", { ascending: false }),
+    await db()
+      .from("help_requests")
+      .select("*")
+      .order("created_at", { ascending: false }),
   );
 }
 async function loadActivity() {
@@ -93,11 +104,16 @@ async function loadStats() {
 // ---- component ----------------------------------------------------------------
 
 export function StaffDashboard() {
+  const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [fresh, setFresh] = useState<ReadonlySet<number>>(new Set());
   const now = useNow();
-  const liveNavs = useSyncExternalStore(subscribeNavigationCount, getNavigationCount, () => 0);
+  const liveNavs = useSyncExternalStore(
+    subscribeNavigationCount,
+    getNavigationCount,
+    () => 0,
+  );
 
   const closures = useLiveTable("closures", {
     load: loadClosures,
@@ -129,7 +145,10 @@ export function StaffDashboard() {
     onError: setError,
   });
 
-  async function run(id: string, action: () => Promise<{ ok: boolean; error?: string }>) {
+  async function run(
+    id: string,
+    action: () => Promise<{ ok: boolean; error?: string }>,
+  ) {
     setBusy(id);
     setError(null);
     const result = await action();
@@ -143,8 +162,17 @@ export function StaffDashboard() {
     void run(`closure:${key}`, () => setClosure(key, !c.is_closed));
   }
 
+  async function onLogout() {
+    await lockStaffDashboard();
+    router.refresh();
+  }
+
   function onReset() {
-    if (!window.confirm("Reset the demo to its starting state? This clears all live requests and activity.")) {
+    if (
+      !window.confirm(
+        "Reset the demo to its starting state? This clears all live requests and activity.",
+      )
+    ) {
       return;
     }
     void run("reset", resetDemo);
@@ -153,15 +181,28 @@ export function StaffDashboard() {
   // ---- derived values ----
 
   const open = requests?.filter((r) => r.status === "open").length;
+  // A volunteer is unavailable while they have an assigned request; everyone else is available.
+  const busyVolunteers = requests
+    ? new Set(
+        requests
+          .filter((r) => r.status === "assigned" && r.volunteer)
+          .map((r) => r.volunteer),
+      ).size
+    : undefined;
+  const volunteersUnavailable =
+    busyVolunteers === undefined
+      ? undefined
+      : Math.min(busyVolunteers, VOLUNTEER_ROSTER.length);
+  const volunteersAvailable =
+    volunteersUnavailable === undefined
+      ? undefined
+      : VOLUNTEER_ROSTER.length - volunteersUnavailable;
   const stat = (key: string) => stats?.find((s) => s.key === key)?.value;
-  const median = stat("median_minutes");
   const arrivals = stat("arrivals_today");
 
-  const top = (counts ?? [])
-    .filter((c) => isDestId(c.destination))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, TOP_LIMIT);
-  const topMax = Math.max(1, ...top.map((c) => c.count));
+  const visitCounts: Partial<Record<DestId, number>> = {};
+  for (const c of counts ?? [])
+    if (isDestId(c.destination)) visitCounts[c.destination] = c.count;
 
   const feed = (activity ?? []).slice(0, FEED_LIMIT);
   const show = (v: number | undefined) => (v === undefined ? "–" : v);
@@ -176,7 +217,6 @@ export function StaffDashboard() {
             </div>
             <div>
               <h1>NavConnect</h1>
-              <p>Pilot concept for Lakeridge Health Oshawa · Where every step matters</p>
             </div>
           </div>
         </header>
@@ -184,26 +224,25 @@ export function StaffDashboard() {
         <section className={cx("console")} aria-label="Staff console">
           <div className={cx("c-head")}>
             <div>
-              <p className={cx("eyebrow")}>Staff &amp; volunteer console · concept</p>
+              <p className={cx("eyebrow")}>Staff &amp; volunteer console</p>
               <h2>Lakeridge Health Oshawa · 1 Hospital Court</h2>
             </div>
             <div className={cx("head-actions")}>
-              <span className={cx("tag")}>Sample data · not live hospital data</span>
-              <button className={cx("reset")} onClick={onReset} disabled={busy !== null}>
+              <span className={cx("tag")}>
+                Sample data · not live hospital data
+              </span>
+              <button
+                className={cx("reset")}
+                onClick={onReset}
+                disabled={busy !== null}
+              >
                 {busy === "reset" ? "Resetting…" : "Reset demo"}
+              </button>
+              <button className={cx("reset")} onClick={onLogout}>
+                Log out
               </button>
             </div>
           </div>
-
-          <p className={cx("tip")}>
-            <Icon name="info" />
-            <span>
-              Try the full loop: start a route to the <b>Dialysis Unit</b> on the phone, then mark
-              the <b>Purple Elevator</b> out of service below. The phone offers a detour or a
-              volunteer; pick the volunteer and the request lands here for you to assign. Closures
-              are demo scenarios, not real outages.
-            </span>
-          </p>
 
           {error && (
             <p className={cx("error")} role="alert">
@@ -214,7 +253,7 @@ export function StaffDashboard() {
           <div className={cx("tiles")}>
             <div className={cx("tile")}>
               <span>Active navigations</span>
-              <b>{ACTIVE_NAV_BASELINE + liveNavs}</b>
+              <b>{liveNavs}</b>
               <small>right now</small>
             </div>
             <div className={cx("tile", "alert")}>
@@ -223,10 +262,20 @@ export function StaffDashboard() {
               <small>waiting for a volunteer</small>
             </div>
             <div className={cx("tile")}>
-              <span>Median time to destination</span>
+              <span>Volunteers</span>
+              <b className={cx("avail")}>
+                {show(volunteersAvailable)}
+                <small style={{ fontSize: "0.9rem" }}> available</small>
+              </b>
+              <small className={cx("unavail")}>
+                {show(volunteersUnavailable)} unavailable
+              </small>
+            </div>
+            <div className={cx("tile")}>
+              <span>Total time saved</span>
               <b>
-                {show(median)}
-                <small style={{ fontSize: "0.9rem" }}> min</small>
+                {TIME_SAVED_HOURS}
+                <small style={{ fontSize: "0.9rem" }}> hrs</small>
               </b>
               <small>today</small>
             </div>
@@ -240,32 +289,66 @@ export function StaffDashboard() {
           <div className={cx("c-grid")}>
             <div className={cx("panel")}>
               <h3>
-                Help requests <span className={cx("cnt")}>{show(open)} open</span>
+                Help requests{" "}
+                <span className={cx("cnt")}>{show(open)} open</span>
               </h3>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {requests?.length === 0 && <p className={cx("empty")}>No requests.</p>}
+                {requests?.length === 0 && (
+                  <p className={cx("empty")}>No requests.</p>
+                )}
                 {requests?.map((r: HelpRequest) => {
                   const live = !r.client_id.startsWith("seed-");
                   return (
-                    <div key={r.id} className={cx("req", r.status, live && "live")}>
+                    <div
+                      key={r.id}
+                      className={cx("req", r.status, live && "live")}
+                    >
                       <div className={cx("req-main")}>
                         <strong>{requestText(r)}</strong>
                         <small>
-                          {r.location} · <span className={cx("lang-tag")}>{langTag(r.lang)}</span> ·{" "}
-                          {now ? minutesAgo(r.created_at, now) : ""}
-                          {live && <span className={cx("live-tag")}>● from demo phone</span>}
+                          {r.location} ·{" "}
+                          <span className={cx("lang-tag")}>
+                            {langTag(r.lang)}
+                          </span>{" "}
+                          · {now ? minutesAgo(r.created_at, now) : ""}
+                          {live && (
+                            <span className={cx("live-tag")}>
+                              ● from demo phone
+                            </span>
+                          )}
                         </small>
                       </div>
                       {r.status === "open" ? (
                         <button
                           className={cx("c-btn")}
-                          onClick={() => void run(`assign:${r.id}`, () => assignVolunteer(r.id))}
+                          onClick={() =>
+                            void run(`assign:${r.id}`, () =>
+                              assignVolunteer(r.id),
+                            )
+                          }
                           disabled={busy === `assign:${r.id}`}
                         >
                           Assign volunteer
                         </button>
+                      ) : r.status === "assigned" ? (
+                        <div className={cx("req-actions")}>
+                          <span className={cx("status")}>
+                            {r.volunteer} on the way
+                          </span>
+                          <button
+                            className={cx("c-btn", "ghost")}
+                            onClick={() =>
+                              void run(`complete:${r.id}`, () =>
+                                completeRequest(r.id),
+                              )
+                            }
+                            disabled={busy === `complete:${r.id}`}
+                          >
+                            Mark resolved
+                          </button>
+                        </div>
                       ) : (
-                        <span className={cx("status")}>{r.volunteer} on the way</span>
+                        <span className={cx("status", "done")}>Resolved</span>
                       )}
                     </div>
                   );
@@ -277,7 +360,10 @@ export function StaffDashboard() {
               <h3>Closures &amp; escorts</h3>
               <div>
                 {closures?.map((c) => (
-                  <div key={c.key} className={cx("closure", c.is_closed && "on")}>
+                  <div
+                    key={c.key}
+                    className={cx("closure", c.is_closed && "on")}
+                  >
                     <div>
                       <strong>{c.label}</strong>
                       <small>{c.description}</small>
@@ -297,31 +383,32 @@ export function StaffDashboard() {
             </div>
 
             <div className={cx("panel")}>
-              <h3>Top destinations today</h3>
-              <div className={cx("bars")}>
-                {top.map((c) => {
-                  const id = c.destination as keyof typeof DEST;
-                  return (
-                    <div
-                      key={id}
-                      className={cx("bar")}
-                      style={{ "--lc": `var(--l-${DEST[id].line})` } as CSSProperties}
-                    >
-                      <span>{I.en.dest[id]}</span>
-                      <span className={cx("tr")}>
-                        <i style={{ width: `${((c.count / topMax) * 100).toFixed(1)}%` }} />
-                      </span>
-                      <b>{c.count}</b>
-                    </div>
-                  );
-                })}
-              </div>
-              <p className={cx("sub-h")}>Navigation language</p>
+              <h3>Destination heatmap</h3>
+              <HeatMap counts={visitCounts} />
+            </div>
+
+            <div className={cx("panel")}>
+              <h3>Activity log</h3>
+              <ul className={cx("feed")} aria-live="polite">
+                {feed.map((a: Activity) => (
+                  <li key={a.id} className={cx(fresh.has(a.id) && "new")}>
+                    <time dateTime={a.created_at}>{fmtTime(a.created_at)}</time>
+                    <span>{a.message}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className={cx("panel", "wide")}>
+              <h3>Navigation language</h3>
               <div className={cx("stack")}>
                 {LANGUAGE_MIX.map((l) => (
                   <i
                     key={l.name}
-                    style={{ width: `${l.pct}%`, background: `var(${l.color})` }}
+                    style={{
+                      width: `${l.pct}%`,
+                      background: `var(${l.color})`,
+                    }}
                     title={`${l.name} ${l.pct}%`}
                   />
                 ))}
@@ -334,18 +421,6 @@ export function StaffDashboard() {
                   </span>
                 ))}
               </div>
-            </div>
-
-            <div className={cx("panel")}>
-              <h3>Activity</h3>
-              <ul className={cx("feed")} aria-live="polite">
-                {feed.map((a: Activity) => (
-                  <li key={a.id} className={cx(fresh.has(a.id) && "new")}>
-                    <time dateTime={a.created_at}>{fmtTime(a.created_at)}</time>
-                    <span>{a.message}</span>
-                  </li>
-                ))}
-              </ul>
             </div>
           </div>
         </section>

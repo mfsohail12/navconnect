@@ -4,7 +4,7 @@
 // Overlays: help sheet, closure choice sheet, letter scan.
 // Shared state (closures, help requests) comes from Supabase; everything else is local.
 
-import { useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type CSSProperties } from "react";
 import { logDetourChoice, recordArrival } from "@/app/actions";
 import { I, LANGS, LM_EN_PLAIN, fill, instr } from "@/lib/navconnect/i18n";
 import { CLOSURE_AFFECTS, detourRoute, getRoute, stats } from "@/lib/navconnect/routes";
@@ -22,6 +22,7 @@ import { setPrefs, usePrefs, type Prefs } from "./hooks/usePrefs";
 import { ChoiceSheet } from "./overlays/ChoiceSheet";
 import { HelpSheet } from "./overlays/HelpSheet";
 import { ScanOverlay } from "./overlays/ScanOverlay";
+import { ScanSourceSheet } from "./overlays/ScanSourceSheet";
 import { ArriveScreen } from "./screens/ArriveScreen";
 import { HomeScreen } from "./screens/HomeScreen";
 import { NavScreen } from "./screens/NavScreen";
@@ -32,6 +33,7 @@ type Screen = "home" | "route" | "nav" | "arrive" | "settings";
 
 type SheetState =
   | { kind: "help" }
+  | { kind: "scanSource" }
   | { kind: "choice"; closure: ClosureKey; alt: Route | null; extra: number }
   | null;
 
@@ -53,6 +55,14 @@ export function PatientApp() {
   const [banner, setBanner] = useState<string | null>(null);
   const [arrival, setArrival] = useState<{ dest: DestId; seconds: number } | null>(null);
   const bannerTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const scanTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const cameraInput = useRef<HTMLInputElement>(null);
+  const libraryInput = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const timers = scanTimers.current;
+    return () => timers.forEach(clearTimeout);
+  }, []);
 
   // ---- screens -------------------------------------------------------------
 
@@ -107,11 +117,10 @@ export function PatientApp() {
 
   // ---- closures ------------------------------------------------------------
 
-  /** A closure just became active. Pause and offer a choice if it's on this phone's route. */
+  /** A closure just became active. Offer a choice if it's on this phone's route. */
   function onClosed(k: ClosureKey) {
     const n = navigation.current();
     if (!n || !dest || !CLOSURE_AFFECTS[k].includes(dest) || n.route.detourFor === k) return;
-    navigation.pause();
     fb.haptic("reroute");
     showBanner(t.closedBanner);
     fb.speak(`${t.choiceTitle}. ${fill(t.choiceSub, { what: t.closedWhat[k] })}`);
@@ -164,17 +173,37 @@ export function PatientApp() {
 
   // ---- scan ----------------------------------------------------------------
 
+  /** Opens the native camera or photo picker. Must run synchronously inside the tap handler. */
+  function pickScanSource(input: HTMLInputElement | null) {
+    setSheet(null);
+    input?.click();
+  }
+
+  /**
+   * The photo is deliberately ignored (no upload, no OCR): any picked image
+   * plays the simulated reading, then lands on Diagnostic Imaging.
+   */
+  function onLetterPicked(e: ChangeEvent<HTMLInputElement>) {
+    const picked = e.target.files?.length ?? 0;
+    e.target.value = ""; // so choosing the same photo again still fires change
+    if (picked > 0) doScan();
+  }
+
   function doScan() {
+    if (scan) return;
     setScan("reading");
-    setTimeout(() => {
-      setScan("found");
-      fb.haptic("arrive");
-    }, 1700);
-    setTimeout(() => {
-      setScan(null);
-      setDest("img");
-      go("route");
-    }, 2900);
+    // Push into the same array so the unmount cleanup above clears these too.
+    scanTimers.current.push(
+      setTimeout(() => {
+        setScan("found");
+        fb.haptic("arrive");
+      }, 1700),
+      setTimeout(() => {
+        setScan(null);
+        setDest("img");
+        go("route");
+      }, 2900),
+    );
   }
 
   // ---- settings ------------------------------------------------------------
@@ -228,7 +257,7 @@ export function PatientApp() {
                 setDest(id);
                 go("route");
               }}
-              onScan={doScan}
+              onScan={() => setSheet({ kind: "scanSource" })}
               onSettings={() => go("settings")}
               onLanguage={() =>
                 setPrefs({ lang: LANGS[(LANGS.indexOf(prefs.lang) + 1) % LANGS.length] })
@@ -254,8 +283,6 @@ export function PatientApp() {
               lang={prefs.lang}
               dest={dest}
               nav={nav}
-              ride={navigation.ride}
-              pan={navigation.pan}
               pace={prefs.pace}
               audio={prefs.audio}
               haptic={prefs.haptic}
@@ -263,8 +290,8 @@ export function PatientApp() {
               banner={banner}
               onToggleAudio={toggleAudio}
               onToggleHaptic={toggleHaptic}
-              onWalk={navigation.toggleWalk}
-              onSkip={navigation.skip}
+              onNext={navigation.next}
+              onBack={navigation.back}
               onHelp={() => setSheet({ kind: "help" })}
               onEnd={endNav}
             />
@@ -295,6 +322,34 @@ export function PatientApp() {
             onClose={closeHelp}
           />
         )}
+        {sheet?.kind === "scanSource" && (
+          <ScanSourceSheet
+            t={t}
+            onCamera={() => pickScanSource(cameraInput.current)}
+            onLibrary={() => pickScanSource(libraryInput.current)}
+            onClose={() => setSheet(null)}
+          />
+        )}
+        {/* Kept mounted outside the sheet so the change event survives the sheet closing. */}
+        <input
+          ref={cameraInput}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          hidden
+          tabIndex={-1}
+          aria-hidden="true"
+          onChange={onLetterPicked}
+        />
+        <input
+          ref={libraryInput}
+          type="file"
+          accept="image/*"
+          hidden
+          tabIndex={-1}
+          aria-hidden="true"
+          onChange={onLetterPicked}
+        />
         {sheet?.kind === "choice" && (
           <ChoiceSheet
             t={t}
@@ -308,13 +363,6 @@ export function PatientApp() {
         )}
         {scan && <ScanOverlay text={scan === "reading" ? t.scanning : t.found} />}
       </div>
-
-      <p className={cx("phone-note")}>
-        Routes follow Lakeridge Health&apos;s published visitor directions for the Oshawa
-        hospital. The map is traced from Lakeridge&apos;s LHO site map; distances are
-        estimates. Directions are spoken aloud when sound is on. Phones that support it
-        vibrate for turn cues; everywhere else the phone shakes on screen.
-      </p>
     </div>
   );
 }
