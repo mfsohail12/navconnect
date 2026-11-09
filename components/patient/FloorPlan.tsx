@@ -11,7 +11,10 @@ const displayFont: CSSProperties = { fontFamily: "var(--f-display)" };
 
 const points = (pts: readonly Point[]) => pts.map((p) => p.join(",")).join(" ");
 
-export function FloorPlan({ labels }: { labels: Dictionary["mapL"] }) {
+const MONO = "#8A8D90"; // sector D's grey
+
+/** `mono` greys every wing and elevator (used behind the heatmap so only the heat has colour). */
+export function FloorPlan({ labels, mono = false }: { labels: Dictionary["mapL"]; mono?: boolean }) {
   return (
     <>
       {COURT_LABELS.map(({ text, at: [x, y] }) => (
@@ -33,9 +36,9 @@ export function FloorPlan({ labels }: { labels: Dictionary["mapL"] }) {
         <polygon
           key={w.letter}
           points={points(w.polygon)}
-          fill={w.color}
-          fillOpacity={0.28}
-          stroke={w.color}
+          fill={mono ? MONO : w.color}
+          fillOpacity={mono ? 0.2 : 0.28}
+          stroke={mono ? MONO : w.color}
           strokeOpacity={0.75}
           strokeWidth={3}
           strokeLinejoin="round"
@@ -43,7 +46,7 @@ export function FloorPlan({ labels }: { labels: Dictionary["mapL"] }) {
       ))}
       {WINGS.map(({ letter, color, badge: [x, y] }) => (
         <g key={letter} transform={`translate(${x} ${y})`}>
-          <circle r={30} fill="var(--surface)" stroke={color} strokeWidth={4} />
+          <circle r={30} fill="var(--surface)" stroke={mono ? MONO : color} strokeWidth={4} />
           <text
             y={13}
             textAnchor="middle"
@@ -89,7 +92,7 @@ export function FloorPlan({ labels }: { labels: Dictionary["mapL"] }) {
           width={22}
           height={22}
           rx={4}
-          fill={color}
+          fill={mono ? MONO : color}
           stroke="var(--surface)"
           strokeWidth={4}
         >

@@ -10,6 +10,9 @@ import type { ClosureKey, DestId, HelpReason } from "./types";
 /** Volunteers handed out in rotation when staff click "Assign volunteer". */
 export const VOLS = ["Fatima K.", "Mei L.", "Joseph A.", "Priya S."] as const;
 
+/** Everyone on shift: the rotation above plus the volunteer already helping in the seeded data. */
+export const VOLUNTEER_ROSTER: readonly string[] = [...VOLS, "Daniel O."];
+
 /** Help sheet reasons, in the same order as each dictionary's `reasons` list. */
 export const HELP_REASONS = ["lost", "wheelchair", "interpreter", "other"] as const satisfies readonly HelpReason[];
 

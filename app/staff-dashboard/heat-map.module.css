@@ -15,15 +15,10 @@
   height: auto;
 }
 .glow {
-  mix-blend-mode: multiply;
-}
-:global([data-theme="dark"]) .glow {
-  mix-blend-mode: normal;
-}
-@media (prefers-color-scheme: dark) {
-  .glow {
-    mix-blend-mode: normal;
-  }
+  fill: var(--crit);
+  stroke: var(--crit);
+  stroke-width: 3;
+  transition: r 0.4s, fill-opacity 0.4s;
 }
 .spot {
   cursor: pointer;
@@ -86,7 +81,7 @@
   border-radius: 99px;
   background: linear-gradient(
     to right,
-    color-mix(in srgb, var(--crit) 12%, var(--surface-2)),
+    color-mix(in srgb, var(--crit) 20%, var(--surface-2)),
     var(--crit)
   );
 }

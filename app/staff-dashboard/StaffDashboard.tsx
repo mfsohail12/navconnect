@@ -12,13 +12,17 @@ import { isClosureKey } from "@/lib/navconnect/routes";
 import type { DestId } from "@/lib/navconnect/types";
 import {
   TIME_SAVED_HOURS,
+  VOLUNTEER_ROSTER,
   LANGUAGE_MIX,
   langTag,
   minutesAgo,
   requestText,
 } from "@/lib/navconnect/staff";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import { getNavigationCount, subscribeNavigationCount } from "@/lib/supabase/presence";
+import {
+  getNavigationCount,
+  subscribeNavigationCount,
+} from "@/lib/supabase/presence";
 import { unwrap, type Row } from "@/lib/supabase/utils";
 import styles from "./staff-dashboard.module.css";
 import { HeatMap } from "./HeatMap";
@@ -67,11 +71,16 @@ const newestFirst = (a: { created_at: string }, b: { created_at: string }) =>
 const db = () => getSupabaseBrowserClient();
 
 async function loadClosures() {
-  return unwrap(await db().from("closures").select("*").order("key", { ascending: false }));
+  return unwrap(
+    await db().from("closures").select("*").order("key", { ascending: false }),
+  );
 }
 async function loadRequests() {
   return unwrap(
-    await db().from("help_requests").select("*").order("created_at", { ascending: false }),
+    await db()
+      .from("help_requests")
+      .select("*")
+      .order("created_at", { ascending: false }),
   );
 }
 async function loadActivity() {
@@ -97,7 +106,11 @@ export function StaffDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [fresh, setFresh] = useState<ReadonlySet<number>>(new Set());
   const now = useNow();
-  const liveNavs = useSyncExternalStore(subscribeNavigationCount, getNavigationCount, () => 0);
+  const liveNavs = useSyncExternalStore(
+    subscribeNavigationCount,
+    getNavigationCount,
+    () => 0,
+  );
 
   const closures = useLiveTable("closures", {
     load: loadClosures,
@@ -129,7 +142,10 @@ export function StaffDashboard() {
     onError: setError,
   });
 
-  async function run(id: string, action: () => Promise<{ ok: boolean; error?: string }>) {
+  async function run(
+    id: string,
+    action: () => Promise<{ ok: boolean; error?: string }>,
+  ) {
     setBusy(id);
     setError(null);
     const result = await action();
@@ -144,7 +160,11 @@ export function StaffDashboard() {
   }
 
   function onReset() {
-    if (!window.confirm("Reset the demo to its starting state? This clears all live requests and activity.")) {
+    if (
+      !window.confirm(
+        "Reset the demo to its starting state? This clears all live requests and activity.",
+      )
+    ) {
       return;
     }
     void run("reset", resetDemo);
@@ -153,11 +173,28 @@ export function StaffDashboard() {
   // ---- derived values ----
 
   const open = requests?.filter((r) => r.status === "open").length;
+  // A volunteer is unavailable while they have an assigned request; everyone else is available.
+  const busyVolunteers = requests
+    ? new Set(
+        requests
+          .filter((r) => r.status === "assigned" && r.volunteer)
+          .map((r) => r.volunteer),
+      ).size
+    : undefined;
+  const volunteersUnavailable =
+    busyVolunteers === undefined
+      ? undefined
+      : Math.min(busyVolunteers, VOLUNTEER_ROSTER.length);
+  const volunteersAvailable =
+    volunteersUnavailable === undefined
+      ? undefined
+      : VOLUNTEER_ROSTER.length - volunteersUnavailable;
   const stat = (key: string) => stats?.find((s) => s.key === key)?.value;
   const arrivals = stat("arrivals_today");
 
   const visitCounts: Partial<Record<DestId, number>> = {};
-  for (const c of counts ?? []) if (isDestId(c.destination)) visitCounts[c.destination] = c.count;
+  for (const c of counts ?? [])
+    if (isDestId(c.destination)) visitCounts[c.destination] = c.count;
 
   const feed = (activity ?? []).slice(0, FEED_LIMIT);
   const show = (v: number | undefined) => (v === undefined ? "–" : v);
@@ -183,8 +220,14 @@ export function StaffDashboard() {
               <h2>Lakeridge Health Oshawa · 1 Hospital Court</h2>
             </div>
             <div className={cx("head-actions")}>
-              <span className={cx("tag")}>Sample data · not live hospital data</span>
-              <button className={cx("reset")} onClick={onReset} disabled={busy !== null}>
+              <span className={cx("tag")}>
+                Sample data · not live hospital data
+              </span>
+              <button
+                className={cx("reset")}
+                onClick={onReset}
+                disabled={busy !== null}
+              >
                 {busy === "reset" ? "Resetting…" : "Reset demo"}
               </button>
             </div>
@@ -208,6 +251,16 @@ export function StaffDashboard() {
               <small>waiting for a volunteer</small>
             </div>
             <div className={cx("tile")}>
+              <span>Volunteers</span>
+              <b className={cx("avail")}>
+                {show(volunteersAvailable)}
+                <small style={{ fontSize: "0.9rem" }}> available</small>
+              </b>
+              <small className={cx("unavail")}>
+                {show(volunteersUnavailable)} unavailable
+              </small>
+            </div>
+            <div className={cx("tile")}>
               <span>Total time saved</span>
               <b>
                 {TIME_SAVED_HOURS}
@@ -225,32 +278,51 @@ export function StaffDashboard() {
           <div className={cx("c-grid")}>
             <div className={cx("panel")}>
               <h3>
-                Help requests <span className={cx("cnt")}>{show(open)} open</span>
+                Help requests{" "}
+                <span className={cx("cnt")}>{show(open)} open</span>
               </h3>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {requests?.length === 0 && <p className={cx("empty")}>No requests.</p>}
+                {requests?.length === 0 && (
+                  <p className={cx("empty")}>No requests.</p>
+                )}
                 {requests?.map((r: HelpRequest) => {
                   const live = !r.client_id.startsWith("seed-");
                   return (
-                    <div key={r.id} className={cx("req", r.status, live && "live")}>
+                    <div
+                      key={r.id}
+                      className={cx("req", r.status, live && "live")}
+                    >
                       <div className={cx("req-main")}>
                         <strong>{requestText(r)}</strong>
                         <small>
-                          {r.location} · <span className={cx("lang-tag")}>{langTag(r.lang)}</span> ·{" "}
-                          {now ? minutesAgo(r.created_at, now) : ""}
-                          {live && <span className={cx("live-tag")}>● from demo phone</span>}
+                          {r.location} ·{" "}
+                          <span className={cx("lang-tag")}>
+                            {langTag(r.lang)}
+                          </span>{" "}
+                          · {now ? minutesAgo(r.created_at, now) : ""}
+                          {live && (
+                            <span className={cx("live-tag")}>
+                              ● from demo phone
+                            </span>
+                          )}
                         </small>
                       </div>
                       {r.status === "open" ? (
                         <button
                           className={cx("c-btn")}
-                          onClick={() => void run(`assign:${r.id}`, () => assignVolunteer(r.id))}
+                          onClick={() =>
+                            void run(`assign:${r.id}`, () =>
+                              assignVolunteer(r.id),
+                            )
+                          }
                           disabled={busy === `assign:${r.id}`}
                         >
                           Assign volunteer
                         </button>
                       ) : (
-                        <span className={cx("status")}>{r.volunteer} on the way</span>
+                        <span className={cx("status")}>
+                          {r.volunteer} on the way
+                        </span>
                       )}
                     </div>
                   );
@@ -262,7 +334,10 @@ export function StaffDashboard() {
               <h3>Closures &amp; escorts</h3>
               <div>
                 {closures?.map((c) => (
-                  <div key={c.key} className={cx("closure", c.is_closed && "on")}>
+                  <div
+                    key={c.key}
+                    className={cx("closure", c.is_closed && "on")}
+                  >
                     <div>
                       <strong>{c.label}</strong>
                       <small>{c.description}</small>
@@ -287,7 +362,7 @@ export function StaffDashboard() {
             </div>
 
             <div className={cx("panel")}>
-              <h3>Activity</h3>
+              <h3>Activity log</h3>
               <ul className={cx("feed")} aria-live="polite">
                 {feed.map((a: Activity) => (
                   <li key={a.id} className={cx(fresh.has(a.id) && "new")}>
@@ -304,7 +379,10 @@ export function StaffDashboard() {
                 {LANGUAGE_MIX.map((l) => (
                   <i
                     key={l.name}
-                    style={{ width: `${l.pct}%`, background: `var(${l.color})` }}
+                    style={{
+                      width: `${l.pct}%`,
+                      background: `var(${l.color})`,
+                    }}
                     title={`${l.name} ${l.pct}%`}
                   />
                 ))}

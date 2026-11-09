@@ -56,32 +56,26 @@ export function HeatMap({ counts }: { counts: Partial<Record<DestId, number>> })
           role="group"
           aria-label="Heatmap of visits to each destination on the main floor"
         >
-          <defs>
-            <radialGradient id="heat-glow">
-              <stop offset="0%" style={{ stopColor: "var(--crit)", stopOpacity: 0.85 }} />
-              <stop offset="45%" style={{ stopColor: "var(--crit)", stopOpacity: 0.4 }} />
-              <stop offset="100%" style={{ stopColor: "var(--crit)", stopOpacity: 0 }} />
-            </radialGradient>
-          </defs>
-
-          <FloorPlan labels={I.en.mapL} />
+          <FloorPlan labels={I.en.mapL} mono />
 
           {/* Glows first so every dot and label sits above them. */}
           {ORDER.map((id) => {
             const n = visits(id);
             if (!n) return null;
             const [x, y] = HEAT_SPOTS[id].at;
-            const r = 50 + 80 * (n / max);
+            const heat = n / max;
+            // Area grows with visits, so busier places read as clearly bigger and darker.
+            const r = 26 + 54 * Math.sqrt(heat);
             return (
               <circle
                 key={id}
                 cx={x}
                 cy={y}
                 r={r}
-                fill="url(#heat-glow)"
-                opacity={0.35 + 0.65 * (n / max)}
-                pointerEvents="none"
                 className={styles.glow}
+                fillOpacity={0.2 + 0.6 * heat}
+                strokeOpacity={0.5 + 0.5 * heat}
+                pointerEvents="none"
               />
             );
           })}
