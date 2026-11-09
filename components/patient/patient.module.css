@@ -40,17 +40,35 @@
   box-shadow: var(--shadow);
   font-size: calc(15px * var(--scale));
   isolation: isolate;
+  /* Text inherits from here, not the page body, so a theme set on .phone (high contrast)
+     applies to every child. Without it, light-mode body ink stays dark on a black screen. */
+  color: var(--ink);
 }
+/* High contrast follows the device theme, going to the extreme of the same mode:
+   light device -> white screen with black text, dark device -> black screen with white text. */
 .phone.hc {
-  --surface: #000;
-  --surface-2: #0c0c0c;
-  --ink: #fff;
-  --muted: #f0f0f0;
-  --line: #fff;
-  --accent: #ffd60a;
-  --accent-ink: #000;
-  --accent-soft: #2a2500;
-  --bg: #000;
+  --surface: #fff;
+  --surface-2: #f2f2f2;
+  --ink: #000;
+  --muted: #1a1a1a;
+  --line: #000;
+  --accent: #0033cc;
+  --accent-ink: #fff;
+  --accent-soft: #e6ebff;
+  --bg: #fff;
+}
+@media (prefers-color-scheme: dark) {
+  .phone.hc {
+    --surface: #000;
+    --surface-2: #0c0c0c;
+    --ink: #fff;
+    --muted: #f0f0f0;
+    --line: #fff;
+    --accent: #ffd60a;
+    --accent-ink: #000;
+    --accent-soft: #2a2500;
+    --bg: #000;
+  }
 }
 .sb {
   position: absolute;
