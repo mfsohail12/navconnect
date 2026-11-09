@@ -12,6 +12,7 @@ import { I } from "@/lib/navconnect/i18n";
 import { isClosureKey } from "@/lib/navconnect/routes";
 import {
   ACTIVE_NAV_BASELINE,
+  TIME_SAVED_HOURS,
   LANGUAGE_MIX,
   langTag,
   minutesAgo,
@@ -154,7 +155,6 @@ export function StaffDashboard() {
 
   const open = requests?.filter((r) => r.status === "open").length;
   const stat = (key: string) => stats?.find((s) => s.key === key)?.value;
-  const median = stat("median_minutes");
   const arrivals = stat("arrivals_today");
 
   const top = (counts ?? [])
@@ -223,10 +223,10 @@ export function StaffDashboard() {
               <small>waiting for a volunteer</small>
             </div>
             <div className={cx("tile")}>
-              <span>Median time to destination</span>
+              <span>Total time saved</span>
               <b>
-                {show(median)}
-                <small style={{ fontSize: "0.9rem" }}> min</small>
+                {TIME_SAVED_HOURS}
+                <small style={{ fontSize: "0.9rem" }}> hrs</small>
               </b>
               <small>today</small>
             </div>
