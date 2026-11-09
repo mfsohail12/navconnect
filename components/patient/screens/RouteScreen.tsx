@@ -123,7 +123,10 @@ export function RouteScreen({
             </button>
           </>
         )}
-        <ol className={cx("steps")}>
+        <h3 id="route-steps-h" className={cx("sec")}>
+          {t.directionsHeading}
+        </h3>
+        <ol className={cx("steps")} aria-labelledby="route-steps-h">
           {r.steps.map((s, i) => {
             const fl = s.fl ?? "main";
             // Show a floor header when the floor changes from the previous step.
