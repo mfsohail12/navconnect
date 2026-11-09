@@ -4,6 +4,7 @@ import { DEST, searchDestinations } from "@/lib/navconnect/destinations";
 import type { Dictionary } from "@/lib/navconnect/i18n";
 import type { DestId, LangCode } from "@/lib/navconnect/types";
 import { cx } from "../cx";
+import { useDestinationCounts } from "../useDestinationCounts";
 
 type Props = {
   t: Dictionary;
@@ -18,7 +19,11 @@ type Props = {
 };
 
 export function HomeScreen({ t, lang, query, onQuery, onPick, onScan, onSettings, onLanguage, onHelp }: Props) {
-  const list = searchDestinations(query, lang);
+  const counts = useDestinationCounts();
+  // Most visited first. The sort is stable, so ties (and unvisited places) keep the default order.
+  const list = [...searchDestinations(query, lang)].sort(
+    (a, b) => (counts?.[b] ?? 0) - (counts?.[a] ?? 0),
+  );
   return (
     <section className={cx("screen")} aria-label="NavConnect">
       <header className={cx("app-h")}>
