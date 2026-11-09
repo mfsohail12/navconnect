@@ -4,7 +4,13 @@ import { DEST } from "@/lib/navconnect/destinations";
 import { floorLabel, instr, type Dictionary } from "@/lib/navconnect/i18n";
 import { SICON, closedFor, getRoute, stats } from "@/lib/navconnect/routes";
 import { ELEVS } from "@/lib/navconnect/map";
-import type { ClosureKey, ClosureState, DestId, LangCode, Pace } from "@/lib/navconnect/types";
+import type {
+  ClosureKey,
+  ClosureState,
+  DestId,
+  LangCode,
+  Pace,
+} from "@/lib/navconnect/types";
 import { FloorMap } from "../FloorMap";
 import { cx } from "../cx";
 
@@ -19,7 +25,16 @@ type Props = {
   onAskVolunteer: (k: ClosureKey) => void;
 };
 
-export function RouteScreen({ t, lang, dest, closures, pace, onBack, onStart, onAskVolunteer }: Props) {
+export function RouteScreen({
+  t,
+  lang,
+  dest,
+  closures,
+  pace,
+  onBack,
+  onStart,
+  onAskVolunteer,
+}: Props) {
   const r = getRoute(dest, closures);
   const st = stats(r, pace);
   const d = DEST[dest];
@@ -62,16 +77,22 @@ export function RouteScreen({ t, lang, dest, closures, pace, onBack, onStart, on
         </div>
         <div className={cx("stats")}>
           <div className={cx("stat")}>
-            <b>~{st.d} m</b>
-            <span>{t.dist}</span>
+            <span className={cx("stat-ic")}>
+              <Icon name="pin" size={20} />
+            </span>
+            <div>
+              <b>~{st.d} m</b>
+              <span>{t.dist}</span>
+            </div>
           </div>
           <div className={cx("stat")}>
-            <b>{st.min}</b>
-            <span>{t.min}</span>
-          </div>
-          <div className={cx("stat")}>
-            <b>{r.steps.length}</b>
-            <span>{t.steps}</span>
+            <span className={cx("stat-ic")}>
+              <Icon name="clock" size={20} />
+            </span>
+            <div>
+              <b>{st.min}</b>
+              <span>{t.min}</span>
+            </div>
           </div>
         </div>
         {(floorChange || closed) && (
@@ -93,7 +114,10 @@ export function RouteScreen({ t, lang, dest, closures, pace, onBack, onStart, on
         {closed && (
           <>
             <p className={cx("fine")}>{detour ? t.detourNote : t.noDetour}</p>
-            <button className={cx("btn", "btn-ghost")} onClick={() => onAskVolunteer(closed)}>
+            <button
+              className={cx("btn", "btn-ghost")}
+              onClick={() => onAskVolunteer(closed)}
+            >
               <Icon name="help" />
               {t.askVol}
             </button>
@@ -103,14 +127,19 @@ export function RouteScreen({ t, lang, dest, closures, pace, onBack, onStart, on
           {r.steps.map((s, i) => {
             const fl = s.fl ?? "main";
             // Show a floor header when the floor changes from the previous step.
-            const header = fl !== (i === 0 ? "main" : (r.steps[i - 1].fl ?? "main"));
+            const header =
+              fl !== (i === 0 ? "main" : (r.steps[i - 1].fl ?? "main"));
             return (
               <li key={i}>
                 <span className={cx("s-ic")}>
                   <Icon name={SICON[s.a]} size={20} />
                 </span>
                 <span className={cx("s-t")}>
-                  {header && <span className={cx("s-floor")}>{floorLabel(fl, lang)}</span>}
+                  {header && (
+                    <span className={cx("s-floor")}>
+                      {floorLabel(fl, lang)}
+                    </span>
+                  )}
                   {instr(s, dest, lang)}
                 </span>
                 <span className={cx("s-m")}>~{s.m} m</span>
@@ -128,4 +157,3 @@ export function RouteScreen({ t, lang, dest, closures, pace, onBack, onStart, on
     </section>
   );
 }
-

@@ -416,10 +416,13 @@
 }
 .stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 8px;
 }
 .stat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   background: var(--surface-2);
   border-radius: 14px;
   padding: 10px 12px;
@@ -433,6 +436,23 @@
 .stat span {
   font-size: 0.78em;
   color: var(--muted);
+}
+/* Icon badge, same look as the sheet options. Sized in em so it tracks the text size
+   and stays about as tall as the value + label stacked beside it. */
+.stat .stat-ic {
+  flex: none;
+  font-size: 1em; /* undo the label size from `.stat span` so the em sizes below are right */
+  display: grid;
+  place-items: center;
+  width: 2.6em;
+  height: 2.6em;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.stat .stat-ic svg {
+  width: 1.4em;
+  height: 1.4em;
 }
 .chips {
   display: flex;
