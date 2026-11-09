@@ -2,7 +2,7 @@
 
 // The staff & volunteer console, ported from the prototype and backed by Supabase.
 // Everything shown is live: closures, help requests, activity, top destinations and
-// arrivals via table changes; active navigations via Presence (on top of a seeded baseline).
+// arrivals via table changes; active navigations via Presence (a live count of phones, no baseline).
 
 import { useState, useSyncExternalStore, type CSSProperties } from "react";
 import { Icon, MarkIcon } from "@/components/Icon";
@@ -11,7 +11,6 @@ import { DEST, isDestId } from "@/lib/navconnect/destinations";
 import { I } from "@/lib/navconnect/i18n";
 import { isClosureKey } from "@/lib/navconnect/routes";
 import {
-  ACTIVE_NAV_BASELINE,
   TIME_SAVED_HOURS,
   LANGUAGE_MIX,
   langTag,
@@ -214,7 +213,7 @@ export function StaffDashboard() {
           <div className={cx("tiles")}>
             <div className={cx("tile")}>
               <span>Active navigations</span>
-              <b>{ACTIVE_NAV_BASELINE + liveNavs}</b>
+              <b>{liveNavs}</b>
               <small>right now</small>
             </div>
             <div className={cx("tile", "alert")}>

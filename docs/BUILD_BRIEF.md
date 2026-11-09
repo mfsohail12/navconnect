@@ -44,7 +44,7 @@ What to carry over from the prototype's `<script>` and `<style>`:
   - `lib/supabase/use-table-changes.ts`: `useTableChanges(table, { filter, onChange, onResync })`, which refetches on subscribe, reconnect and tab visibility
 - **Writes:** Server Actions in `app/actions.ts` (or split by feature). Each action is one atomic statement or one `rpc()` call.
 - **Device identity:** `getClientId()` (random ID in `localStorage`). Help requests carry `client_id` so "Assign volunteer" reaches only the phone that asked.
-- **Active navigations:** a Supabase Realtime Presence channel (for example `navigating`). A phone tracks itself while navigating and untracks on arrival or end. The dashboard shows the presence count added to a seeded baseline, so it looks busy.
+- **Active navigations:** a Supabase Realtime Presence channel (for example `navigating`). A phone tracks itself while navigating and untracks on arrival or end. The dashboard shows the live presence count only (no seeded baseline), so it reflects the phones actually navigating.
 
 ## 4. Shared data model
 

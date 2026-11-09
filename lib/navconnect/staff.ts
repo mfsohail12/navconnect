@@ -34,9 +34,6 @@ export const LANGUAGE_MIX: readonly { name: string; pct: number; color: string }
   { name: "Other", pct: 5, color: "--muted" },
 ];
 
-/** Seeded baseline for "active navigations"; Presence adds live phones on top. */
-export const ACTIVE_NAV_BASELINE = 23;
-
 /** Hardcoded demo figure for the "total time saved" tile: hours saved today. */
 export const TIME_SAVED_HOURS = 34.3;
 
