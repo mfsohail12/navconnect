@@ -32,6 +32,7 @@ Investor demo of NavConnect, an accessible hospital wayfinding concept, set at L
 - **Don't use `crypto.randomUUID()` in browser code.** Phones testing over `http://<lan-ip>:3000` don't have it. Use `getClientId()` from `lib/supabase/utils.ts` for device IDs.
 - Keep the disclaimers from the prototype unless told otherwise.
 - **Letter scan:** the scan card opens a sheet (take photo / choose image) backed by real `<input type="file">` elements, so the native camera or picker opens. The image is ignored (no upload, no OCR) and the result is always Diagnostic Imaging. Use file inputs, not `getUserMedia`, which needs HTTPS.
+- **Nav screen (approved deviation from the prototype):** navigation is presenter-driven, not simulated walking. One button goes Start → Continue → Finish, with Back. Each step shows an SVG scene from `components/patient/scenes/` chosen by `lib/navconnect/scenes.ts`. Don't restore the Walk/Pause/Skip controls or the "Simulated camera view" badge.
 - **Out of scope:** auth, real indoor positioning, a live camera feed, OCR, native apps, offline caching.
 
 ## Commands

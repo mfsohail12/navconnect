@@ -117,11 +117,10 @@ export function PatientApp() {
 
   // ---- closures ------------------------------------------------------------
 
-  /** A closure just became active. Pause and offer a choice if it's on this phone's route. */
+  /** A closure just became active. Offer a choice if it's on this phone's route. */
   function onClosed(k: ClosureKey) {
     const n = navigation.current();
     if (!n || !dest || !CLOSURE_AFFECTS[k].includes(dest) || n.route.detourFor === k) return;
-    navigation.pause();
     fb.haptic("reroute");
     showBanner(t.closedBanner);
     fb.speak(`${t.choiceTitle}. ${fill(t.choiceSub, { what: t.closedWhat[k] })}`);
@@ -284,8 +283,6 @@ export function PatientApp() {
               lang={prefs.lang}
               dest={dest}
               nav={nav}
-              ride={navigation.ride}
-              pan={navigation.pan}
               pace={prefs.pace}
               audio={prefs.audio}
               haptic={prefs.haptic}
@@ -293,8 +290,8 @@ export function PatientApp() {
               banner={banner}
               onToggleAudio={toggleAudio}
               onToggleHaptic={toggleHaptic}
-              onWalk={navigation.toggleWalk}
-              onSkip={navigation.skip}
+              onNext={navigation.next}
+              onBack={navigation.back}
               onHelp={() => setSheet({ kind: "help" })}
               onEnd={endNav}
             />

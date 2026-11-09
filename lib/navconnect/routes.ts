@@ -170,6 +170,15 @@ export function stats(r: Route, pace: Pace): { d: number; min: number } {
   return { d, min: Math.max(1, Math.round((d / walkSpeed(pace) + v) / 60)) };
 }
 
+/** The floor the visitor is on while at step `i`: wherever the last elevator or escalator took them. */
+export function floorAt(r: Route, i: number): "main" | number | "B1" {
+  let floor: "main" | number | "B1" = "main";
+  for (const s of r.steps.slice(0, i)) {
+    if ((s.a === "elev" || s.a === "down") && s.f !== undefined) floor = s.f;
+  }
+  return floor;
+}
+
 /** Icon shown for each kind of step. */
 export const SICON = {
   straight: "up",
