@@ -89,7 +89,7 @@ export function HomeScreen({ t, lang, query, onQuery, onPick, onScan, onSettings
       <footer className={cx("app-f")}>
         <button className={cx("btn", "btn-help")} onClick={onHelp}>
           <Icon name="help" />
-          <span>{t.helpBtn}</span>
+          <span>{t.needHelpBtn}</span>
         </button>
       </footer>
     </section>

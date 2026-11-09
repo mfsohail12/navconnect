@@ -37,6 +37,7 @@ const en = {
   total: "Time",
   roomL: "Location",
   helpBtn: "Help",
+  needHelpBtn: "I need help",
   helpTitle: "Get help from a volunteer",
   helpSub: "Choose what you need. A volunteer or staff member will come to you.",
   reasons: [
@@ -189,6 +190,7 @@ const fr: Dictionary = {
   total: "Durée",
   roomL: "Emplacement",
   helpBtn: "Aide",
+  needHelpBtn: "J'ai besoin d'aide",
   helpTitle: "Obtenir l'aide d'un bénévole",
   helpSub: "Choisissez ce dont vous avez besoin. Un bénévole ou un membre du personnel viendra vous voir.",
   reasons: [
@@ -341,6 +343,7 @@ const ar: Dictionary = {
   total: "المدة",
   roomL: "الموقع",
   helpBtn: "مساعدة",
+  needHelpBtn: "أحتاج إلى مساعدة",
   helpTitle: "اطلب مساعدة متطوع",
   helpSub: "اختر ما تحتاجه. سيأتي إليك متطوع أو أحد الموظفين.",
   reasons: [
@@ -494,6 +497,7 @@ const zh: Dictionary = {
   total: "用时",
   roomL: "位置",
   helpBtn: "求助",
+  needHelpBtn: "我需要帮助",
   helpTitle: "请志愿者帮忙",
   helpSub: "请选择您需要的帮助。志愿者或工作人员会来找您。",
   reasons: [
