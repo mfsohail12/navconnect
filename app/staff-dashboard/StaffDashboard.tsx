@@ -5,7 +5,7 @@
 // arrivals via table changes; active navigations via Presence (a live count of phones, no baseline).
 
 import { useState, useSyncExternalStore } from "react";
-import { Icon, MarkIcon } from "@/components/Icon";
+import { MarkIcon } from "@/components/Icon";
 import { assignVolunteer, resetDemo, setClosure } from "@/app/actions";
 import { isDestId } from "@/lib/navconnect/destinations";
 import { isClosureKey } from "@/lib/navconnect/routes";
@@ -172,7 +172,6 @@ export function StaffDashboard() {
             </div>
             <div>
               <h1>NavConnect</h1>
-              <p>Pilot concept for Lakeridge Health Oshawa · Where every step matters</p>
             </div>
           </div>
         </header>
@@ -180,7 +179,7 @@ export function StaffDashboard() {
         <section className={cx("console")} aria-label="Staff console">
           <div className={cx("c-head")}>
             <div>
-              <p className={cx("eyebrow")}>Staff &amp; volunteer console · concept</p>
+              <p className={cx("eyebrow")}>Staff &amp; volunteer console</p>
               <h2>Lakeridge Health Oshawa · 1 Hospital Court</h2>
             </div>
             <div className={cx("head-actions")}>
@@ -190,16 +189,6 @@ export function StaffDashboard() {
               </button>
             </div>
           </div>
-
-          <p className={cx("tip")}>
-            <Icon name="info" />
-            <span>
-              Try the full loop: start a route to the <b>Dialysis Unit</b> on the phone, then mark
-              the <b>Purple Elevator</b> out of service below. The phone offers a detour or a
-              volunteer; pick the volunteer and the request lands here for you to assign. Closures
-              are demo scenarios, not real outages.
-            </span>
-          </p>
 
           {error && (
             <p className={cx("error")} role="alert">
