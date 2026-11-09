@@ -90,6 +90,8 @@ export const activityMessages = {
     `New request from a visitor: “${requestText(r)}” near ${r.location}.`,
   assigned: (r: RequestSummary & { location: string; volunteer: string }) =>
     `${r.volunteer} assigned: “${requestText(r)}” at ${r.location}.`,
+  resolved: (r: RequestSummary & { location: string; volunteer: string }) =>
+    `${r.volunteer} resolved: “${requestText(r)}” at ${r.location}. Back on the available list.`,
   closure: (k: ClosureKey, closed: boolean) =>
     `${CLOSURE_NAMES[k]} ${closed ? "marked closed (demo scenario)." : "reopened."}`,
   detour: (k: ClosureKey, dest: DestId) =>

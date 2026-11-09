@@ -208,6 +208,16 @@
 .req.assigned {
   border-inline-start-color: var(--ok);
 }
+.req.done {
+  opacity: 0.65;
+}
+.req-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+}
 .req.live {
   background: var(--accent-soft);
 }
@@ -260,6 +270,15 @@
   padding: 4px 10px;
   border-radius: 99px;
   white-space: nowrap;
+}
+.c-btn.ghost {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+.status.done {
+  color: var(--muted);
+  background: var(--surface-2);
 }
 .closure {
   display: flex;

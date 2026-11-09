@@ -6,7 +6,7 @@
 
 import { useState, useSyncExternalStore } from "react";
 import { MarkIcon } from "@/components/Icon";
-import { assignVolunteer, resetDemo, setClosure } from "@/app/actions";
+import { assignVolunteer, completeRequest, resetDemo, setClosure } from "@/app/actions";
 import { isDestId } from "@/lib/navconnect/destinations";
 import { isClosureKey } from "@/lib/navconnect/routes";
 import type { DestId } from "@/lib/navconnect/types";
@@ -319,10 +319,25 @@ export function StaffDashboard() {
                         >
                           Assign volunteer
                         </button>
+                      ) : r.status === "assigned" ? (
+                        <div className={cx("req-actions")}>
+                          <span className={cx("status")}>
+                            {r.volunteer} on the way
+                          </span>
+                          <button
+                            className={cx("c-btn", "ghost")}
+                            onClick={() =>
+                              void run(`complete:${r.id}`, () =>
+                                completeRequest(r.id),
+                              )
+                            }
+                            disabled={busy === `complete:${r.id}`}
+                          >
+                            Mark resolved
+                          </button>
+                        </div>
                       ) : (
-                        <span className={cx("status")}>
-                          {r.volunteer} on the way
-                        </span>
+                        <span className={cx("status", "done")}>Resolved</span>
                       )}
                     </div>
                   );

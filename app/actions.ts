@@ -132,6 +132,33 @@ export async function assignVolunteer(
 // Closures and detours
 // ---------------------------------------------------------------------------
 
+/** Marks an assigned request as resolved, which frees its volunteer. */
+export async function completeRequest(requestId: string): Promise<ActionResult> {
+  try {
+    const id = text(requestId, 64);
+    if (!id) return { ok: false, error: "Missing request id." };
+    const supabase = getSupabaseAdminClient();
+
+    // Only an assigned request can be resolved, so a double click can't log it twice.
+    const { data, error } = await supabase
+      .from("help_requests")
+      .update({ status: "done" })
+      .eq("id", id)
+      .eq("status", "assigned")
+      .select("reason, lang, location, note, destination, escort_for, volunteer")
+      .maybeSingle();
+    if (error) return fail(error);
+    if (!data) return { ok: false, error: "That request isn't assigned." };
+
+    await logActivity(
+      activityMessages.resolved({ ...data, volunteer: data.volunteer ?? "A volunteer" }),
+    );
+    return OK;
+  } catch (e) {
+    return fail(e);
+  }
+}
+
 export async function setClosure(key: ClosureKey, closed: boolean): Promise<ActionResult> {
   try {
     if (!isClosureKey(key)) return { ok: false, error: "Unknown closure." };
