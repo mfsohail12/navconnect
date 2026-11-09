@@ -26,12 +26,6 @@
   place-items: center;
   flex: none;
 }
-.phone-note {
-  font-size: 0.82rem;
-  color: var(--muted);
-  text-align: center;
-  max-width: 390px;
-}
 
 /* ---------- PHONE ---------- */
 .phone {
@@ -1174,9 +1168,6 @@
     display: block;
     min-height: 0;
     padding: 0;
-  }
-  .phone-note {
-    display: none;
   }
   .phone {
     position: fixed;

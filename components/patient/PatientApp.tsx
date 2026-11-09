@@ -363,13 +363,6 @@ export function PatientApp() {
         )}
         {scan && <ScanOverlay text={scan === "reading" ? t.scanning : t.found} />}
       </div>
-
-      <p className={cx("phone-note")}>
-        Routes follow Lakeridge Health&apos;s published visitor directions for the Oshawa
-        hospital. The map is traced from Lakeridge&apos;s LHO site map; distances are
-        estimates. Directions are spoken aloud when sound is on. Phones that support it
-        vibrate for turn cues; everywhere else the phone shakes on screen.
-      </p>
     </div>
   );
 }

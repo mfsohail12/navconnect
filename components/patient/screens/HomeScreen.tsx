@@ -85,7 +85,6 @@ export function HomeScreen({ t, lang, query, onQuery, onPick, onScan, onSettings
             ))
           )}
         </div>
-        <p className={cx("fine")}>{t.disclaimer}</p>
       </div>
       <footer className={cx("app-f")}>
         <button className={cx("btn", "btn-help")} onClick={onHelp}>
