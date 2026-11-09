@@ -217,7 +217,8 @@
   background: none;
   outline: none;
   font: inherit;
-  font-size: 1em;
+  /* At least 16px: iOS Safari zooms the page when a focused input is smaller. */
+  font-size: max(16px, 1em);
   flex: 1;
   min-width: 0;
   color: var(--ink);

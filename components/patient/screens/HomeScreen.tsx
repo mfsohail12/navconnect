@@ -69,7 +69,7 @@ export function HomeScreen({ t, lang, query, onQuery, onPick, onScan, onSettings
             <small>{t.scanSub}</small>
           </span>
         </button>
-        <h3 className={cx("sec")}>{t.popular}</h3>
+        <h3 className={cx("sec")}>{query.trim() ? t.searchResults : t.popular}</h3>
         {/* Hidden (but still taking up space) until the visit counts arrive, so the tiles
             never appear in the default order and then jump. */}
         <div className={cx("dest-grid")} style={settled ? undefined : { visibility: "hidden" }}>
