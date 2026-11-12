@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NavConnect
 
-## Getting Started
+NavConnect is an accessible hospital wayfinding demo for Lakeridge Health
+Oshawa. It includes a patient-facing navigation experience and a staff
+dashboard for monitoring active navigations, help requests, and route
+closures.
 
-First, run the development server:
+## Tools used
+
+- [Next.js](https://nextjs.org/) 16 with the App Router
+- [React](https://react.dev/) 19 and [TypeScript](https://www.typescriptlang.org/)
+- [Supabase](https://supabase.com/) for shared Postgres state, Realtime
+  updates, and Presence
+- CSS Modules and global CSS for the interface styling
+- [ESLint](https://eslint.org/) with the Next.js configuration for linting
+- [npm](https://www.npmjs.com/) for dependency management and project scripts
+- [Vercel](https://vercel.com/) for deployment
+
+## Getting started
+
+Install dependencies and start the development server:
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in a browser. The patient
+app is available at `/`, and the staff dashboard is available at
+`/staff-dashboard`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+To test the app from a phone on the local network:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run dev -- -H 0.0.0.0
+```
 
-## Learn More
+## Environment variables
 
-To learn more about Next.js, take a look at the following resources:
+Create a `.env.local` file with the Supabase project values required by the
+app:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```env
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-supabase-publishable-key
+SUPABASE_SECRET_KEY=your-supabase-secret-key
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Keep the secret key server-side and never expose it with a `NEXT_PUBLIC_`
+prefix.
 
-## Deploy on Vercel
+## Useful commands
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run lint    # Check the code with ESLint
+npm run build   # Create a production build
+npm run start   # Run the production build locally
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Database scripts are also available for Supabase migrations and generated
+types:
+
+```bash
+npm run db:new -- <name>
+npm run db:push
+npm run db:status
+npm run db:types
+```
+
+## Deploying with Vercel
+
+The app is deployed with [Vercel](https://vercel.com/). Import this repository
+into a Vercel project, keep the default Next.js build settings, and add the
+same Supabase environment variables in the Vercel project settings for the
+appropriate environments. Vercel will build the app with `npm run build` and
+serve it using Next.js.
+
+Before deploying, run:
+
+```bash
+npm run lint
+npm run build
+```
